@@ -105,6 +105,34 @@ const DMCApp = {
       });
     }
 
+    // Database Connection Status Indicator
+    const updateDbBadge = (connected) => {
+      const badge = document.getElementById('db-status-badge');
+      const text = document.getElementById('db-status-text');
+      if (!badge || !text) return;
+      const isAr = typeof getLang === 'function' && getLang() === 'ar';
+
+      if (connected) {
+        badge.classList.remove('fallback');
+        text.textContent = isAr ? 'قاعدة بيانات SQLite متصلة' : 'SQLite DB Connected';
+        badge.title = isAr ? 'قاعدة البيانات المركزية متصلة وجاهزة للحفظ' : 'Central SQLite Database Connected';
+      } else {
+        badge.classList.add('fallback');
+        text.textContent = isAr ? 'التخزين المحلي' : 'Local Storage';
+        badge.title = isAr ? 'يعمل النظام عبر التخزين المحلي بدون خادم' : 'Running on browser local storage fallback';
+      }
+    };
+
+    if (typeof DMCApi !== 'undefined') {
+      updateDbBadge(DMCApi.isConnected);
+      window.addEventListener('dmc-db-status', (e) => {
+        updateDbBadge(e.detail && e.detail.connected);
+      });
+      window.addEventListener('dmc-lang-changed', () => {
+        updateDbBadge(DMCApi.isConnected);
+      });
+    }
+
     // Add Quotation Buttons
     document.querySelectorAll('.btn-trigger-add-quotation').forEach(btn => {
       btn.addEventListener('click', () => {

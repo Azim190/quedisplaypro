@@ -24,6 +24,34 @@ const DMCStore = {
     if (!localStorage.getItem(STORAGE_KEYS.SEEDED)) {
       this.seedDatabase();
     }
+
+    // Sync with SQLite backend if online
+    if (typeof DMCApi !== 'undefined') {
+      DMCApi.checkConnection().then(connected => {
+        if (connected) {
+          this.syncWithBackend();
+        }
+      });
+    }
+
+    window.addEventListener('dmc-db-status', (e) => {
+      if (e.detail && e.detail.connected) {
+        this.syncWithBackend();
+      }
+    });
+  },
+
+  async syncWithBackend() {
+    if (typeof DMCApi === 'undefined' || !DMCApi.isConnected) return;
+    try {
+      const serverQuotations = await DMCApi.getQuotations();
+      if (serverQuotations && Array.isArray(serverQuotations) && serverQuotations.length > 0) {
+        localStorage.setItem(STORAGE_KEYS.QUOTATIONS, JSON.stringify(serverQuotations));
+        window.dispatchEvent(new CustomEvent('dmc-data-changed'));
+      }
+    } catch (e) {
+      console.warn('Backend sync failed:', e);
+    }
   },
 
   seedDatabase() {
@@ -431,6 +459,14 @@ const DMCStore = {
     items.unshift(newQuotation);
     localStorage.setItem(STORAGE_KEYS.QUOTATIONS, JSON.stringify(items));
 
+    // Persist to SQLite backend if connected
+    if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+      DMCApi.createQuotation({
+        ...newQuotation,
+        userName: currentUser ? currentUser.nameEn : 'User'
+      }).catch(e => console.warn('SQLite background save error:', e));
+    }
+
     this.addAuditLog('Quotation Created', newQuotation.id, `Created quotation ${newQuotation.quotationNo}`, null, newQuotation.status);
     window.dispatchEvent(new CustomEvent('dmc-data-changed'));
     return newQuotation;
@@ -452,6 +488,15 @@ const DMCStore = {
     items[index] = { ...items[index], ...updatedFields };
     localStorage.setItem(STORAGE_KEYS.QUOTATIONS, JSON.stringify(items));
 
+    // Persist to SQLite backend if connected
+    if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+      const currentUser = this.getCurrentUser();
+      DMCApi.updateQuotation(id, {
+        ...updatedFields,
+        userName: currentUser ? currentUser.nameEn : 'User'
+      }).catch(e => console.warn('SQLite background update error:', e));
+    }
+
     this.addAuditLog('Quotation Edited', id, `Updated fields on ${oldItem.quotationNo}`, oldItem, items[index]);
     window.dispatchEvent(new CustomEvent('dmc-data-changed'));
     return items[index];
@@ -465,6 +510,13 @@ const DMCStore = {
     const oldStatus = item.status;
     item.status = newStatus;
     localStorage.setItem(STORAGE_KEYS.QUOTATIONS, JSON.stringify(items));
+
+    // Persist to SQLite backend if connected
+    if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+      const currentUser = this.getCurrentUser();
+      DMCApi.updateStatus(id, newStatus, currentUser ? currentUser.nameEn : 'User')
+        .catch(e => console.warn('SQLite background status error:', e));
+    }
 
     this.addAuditLog('Status Changed', id, `Status changed from ${oldStatus} to ${newStatus}`, oldStatus, newStatus);
     window.dispatchEvent(new CustomEvent('dmc-data-changed'));
@@ -486,12 +538,23 @@ const DMCStore = {
       uploadedBy: currentUser ? (currentUser.nameEn || currentUser.nameAr) : 'User',
       notes: revisionData.notes || '',
       fileName: revisionData.fileName || `Revision_${revNo}.pdf`,
-      dataUrl: revisionData.fileDataUrl || item.file.dataUrl
+      dataUrl: revisionData.fileDataUrl || (item.file && item.file.dataUrl) || '',
+      fileLink: revisionData.fileLink || ''
     };
 
     item.revisions.push(newRev);
     item.status = 'revised';
     localStorage.setItem(STORAGE_KEYS.QUOTATIONS, JSON.stringify(items));
+
+    // Persist to SQLite backend if connected
+    if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+      DMCApi.addRevision(id, {
+        fileLink: newRev.fileLink,
+        fileName: newRev.fileName,
+        notes: newRev.notes,
+        userName: newRev.uploadedBy
+      }).catch(e => console.warn('SQLite background revision error:', e));
+    }
 
     this.addAuditLog('Revision Uploaded', id, `Uploaded revision #${revNo} for ${item.quotationNo}`, null, `Rev ${revNo}`);
     window.dispatchEvent(new CustomEvent('dmc-data-changed'));
@@ -505,6 +568,13 @@ const DMCStore = {
 
     items = items.filter(q => q.id !== id);
     localStorage.setItem(STORAGE_KEYS.QUOTATIONS, JSON.stringify(items));
+
+    // Persist to SQLite backend if connected
+    if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+      const currentUser = this.getCurrentUser();
+      DMCApi.deleteQuotation(id, currentUser ? currentUser.nameEn : 'User')
+        .catch(e => console.warn('SQLite background delete error:', e));
+    }
 
     this.addAuditLog('Quotation Deleted', id, `Deleted quotation ${target.quotationNo}`, target.status, 'DELETED');
     window.dispatchEvent(new CustomEvent('dmc-data-changed'));

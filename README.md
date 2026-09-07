@@ -31,8 +31,11 @@ A modern, high-performance, bilingual web application tailored for **Dar Makkah 
 - **Role-Based Access Control (RBAC)**:
   - **Admin**: Full control, creation, editing, system settings, branch management, and data import/export.
   - **Standard User**: View, filter, search, open cloud files, and generate reports.
+- **Relational SQLite Database & REST API**:
+  - Full relational database powered by Node.js native `node:sqlite` (`server/data/dmc_database.sqlite`).
+  - Express.js REST API with automated CRUD, full-text search, multi-criteria filtering, and audit logging.
+  - **Dual-Mode Sync**: Connects to the SQLite database when the backend is running, and automatically falls back to browser `localStorage` on static hosts (like GitHub Pages).
 - **Data Portability**: Full JSON and CSV export/import for seamless backups and data transfer.
-- **Zero Backend Dependencies**: 100% client-side static web application powered by `localStorage` — instantly deployable to any static host.
 
 ---
 
@@ -40,8 +43,43 @@ A modern, high-performance, bilingual web application tailored for **Dar Makkah 
 
 | Role / الدور | National ID / رقم الهوية | Password / كلمة المرور | Permissions / الصلاحيات |
 | :--- | :--- | :--- | :--- |
-| **System Administrator** | `1010101010` | `admin123` | Full access & management |
-| **Standard User** | `2020202020` | `user123` | View, search & export |
+| **System Administrator** | `1010101010` (or `1234567890`) | `admin123` | Full access & management |
+| **Standard User** | `2020202020` (or `0987654321`) | `user123` | View, search & export |
+
+---
+
+## 🗄️ Database & Backend Server / تشغيل قاعدة البيانات والخادم
+
+To run the application with the full **SQLite database and Express REST API backend**:
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Seed database (creates schema and inserts 248 quotations)
+npm run seed
+
+# 3. Start server
+npm start
+```
+The application and REST API will be available at `http://localhost:3000`.
+
+### REST API Endpoints
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/health` | Check server and database status |
+| `POST` | `/api/auth/login` | Authenticate user with National ID |
+| `GET` | `/api/quotations` | List quotations with search, filters, pagination |
+| `GET` | `/api/quotations/:id` | Get single quotation with revisions |
+| `POST` | `/api/quotations` | Create new quotation (auto VAT calc) |
+| `PUT` | `/api/quotations/:id` | Update quotation details |
+| `PATCH` | `/api/quotations/:id/status` | Update quotation status |
+| `POST` | `/api/quotations/:id/revisions` | Add new revision |
+| `DELETE` | `/api/quotations/:id` | Delete quotation |
+| `GET` | `/api/dashboard/stats` | Retrieve aggregated KPI counts and chart data |
+| `GET` | `/api/branches` | List DMC branches |
+| `GET` | `/api/audit-logs` | Retrieve recent audit logs |
 
 ---
 

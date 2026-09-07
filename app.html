@@ -109,6 +109,12 @@
         </div>
 
         <div class="header-actions">
+          <!-- Live Database Connection Status Badge -->
+          <div id="db-status-badge" class="db-status-badge" title="Database Connection Status">
+            <span class="db-status-dot"></span>
+            <span id="db-status-text">SQLite Database</span>
+          </div>
+
           <!-- Bilingual Language Switcher -->
           <button id="header-lang-btn" class="lang-switcher-btn" type="button" title="Switch Language">
             <i class="fa-solid fa-globe" style="color: var(--brand-gold);"></i>
@@ -1048,6 +1054,7 @@
        APPLICATION JAVASCRIPT BUNDLE
        ===================================================================== -->
   <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/store.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/dashboard.js"></script>

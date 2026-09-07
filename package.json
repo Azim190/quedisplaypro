@@ -1,0 +1,26 @@
+{
+  "name": "queconsus-dmc-dashboard",
+  "version": "1.0.0",
+  "description": "DMC Quotation Archiving and Dashboard System with SQLite Database and REST API",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "server": "node server/server.js",
+    "seed": "node server/seed.js",
+    "dev": "node server/server.js"
+  },
+  "keywords": [
+    "quotations",
+    "dmc",
+    "engineering",
+    "sqlite",
+    "express",
+    "dashboard"
+  ],
+  "author": "Dar Makkah Engineering Consultancy",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}

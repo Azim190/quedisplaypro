@@ -58,6 +58,30 @@ const DMCStore = {
     // 1. Users (Admin + Standard User)
     const users = [
       {
+        id: 'u_admin_1',
+        nationalId: '1010101010',
+        password: 'admin123',
+        nameAr: 'أحمد محمد الزهراني',
+        nameEn: 'Ahmed Mohammed Al-Zahrani',
+        role: 'admin',
+        titleAr: 'مدير عام النظام والتوثيق',
+        titleEn: 'System Administrator',
+        email: 'ahmed.m@dmc-consulting.sa',
+        active: true
+      },
+      {
+        id: 'u_user_1',
+        nationalId: '2020202020',
+        password: 'user123',
+        nameAr: 'م. خالد سعيد العتيبي',
+        nameEn: 'Eng. Khalid Al-Otaibi',
+        role: 'user',
+        titleAr: 'مهندس استشاري أول',
+        titleEn: 'Senior Consultant Engineer',
+        email: 'khalid.o@dmc-consulting.sa',
+        active: true
+      },
+      {
         id: 'u_1',
         nationalId: '1234567890',
         password: 'admin123',
@@ -635,7 +659,65 @@ const DMCStore = {
   },
 
   getUsers() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+    const list = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+    const defaults = [
+      {
+        id: 'u_admin_1',
+        nationalId: '1010101010',
+        password: 'admin123',
+        nameAr: 'أحمد محمد الزهراني',
+        nameEn: 'Ahmed Mohammed Al-Zahrani',
+        role: 'admin',
+        titleAr: 'مدير عام النظام والتوثيق',
+        titleEn: 'System Administrator',
+        email: 'ahmed.m@dmc-consulting.sa',
+        active: true
+      },
+      {
+        id: 'u_user_1',
+        nationalId: '2020202020',
+        password: 'user123',
+        nameAr: 'م. خالد سعيد العتيبي',
+        nameEn: 'Eng. Khalid Al-Otaibi',
+        role: 'user',
+        titleAr: 'مهندس استشاري أول',
+        titleEn: 'Senior Consultant Engineer',
+        email: 'khalid.o@dmc-consulting.sa',
+        active: true
+      },
+      {
+        id: 'u_1',
+        nationalId: '1234567890',
+        password: 'admin123',
+        nameAr: 'أحمد محمد الزهراني',
+        nameEn: 'Ahmed Mohammed Al-Zahrani',
+        role: 'admin',
+        titleAr: 'مدير عام النظام والتوثيق',
+        titleEn: 'System Administrator',
+        email: 'ahmed.m@dmc-consulting.sa',
+        active: true
+      },
+      {
+        id: 'u_2',
+        nationalId: '0987654321',
+        password: 'user123',
+        nameAr: 'م. خالد سعيد العتيبي',
+        nameEn: 'Eng. Khalid Al-Otaibi',
+        role: 'user',
+        titleAr: 'مهندس استشاري أول',
+        titleEn: 'Senior Consultant Engineer',
+        email: 'khalid.o@dmc-consulting.sa',
+        active: true
+      }
+    ];
+
+    defaults.forEach(def => {
+      if (!list.some(u => u.nationalId === def.nationalId)) {
+        list.push(def);
+      }
+    });
+
+    return list;
   },
   saveUsers(list) {
     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(list));

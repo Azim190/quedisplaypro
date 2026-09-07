@@ -71,13 +71,42 @@ const DMCAuth = {
 
     // Submit handler
     if (form) {
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const nationalId = nationalIdInput.value.trim();
         const password = passwordInput.value.trim();
         const remember = rememberMeCheckbox ? rememberMeCheckbox.checked : false;
 
-        const user = DMCStore.login(nationalId, password, remember);
+        let user = DMCStore.login(nationalId, password, remember);
+
+        // If not found in local store, try API backend if available
+        if (!user && typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+          try {
+            const apiUser = await DMCApi.login(nationalId, password);
+            if (apiUser) {
+              const sessionData = {
+                id: apiUser.id,
+                nationalId: apiUser.nationalId,
+                nameAr: apiUser.nameAr,
+                nameEn: apiUser.nameEn,
+                role: apiUser.role,
+                titleAr: apiUser.titleAr,
+                titleEn: apiUser.titleEn,
+                email: apiUser.email,
+                loginTime: new Date().toISOString()
+              };
+              if (remember) {
+                localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(sessionData));
+              } else {
+                sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(sessionData));
+              }
+              user = sessionData;
+            }
+          } catch (err) {
+            console.warn('Backend login fallback error:', err);
+          }
+        }
+
         if (user) {
           window.location.href = 'app.html';
         } else {

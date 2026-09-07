@@ -211,6 +211,19 @@ const DMCApi = {
       console.warn('API saveUser error:', e);
       return null;
     }
+  },
+
+  async deleteUser(id) {
+    if (!this.isConnected) return null;
+    try {
+      const res = await fetch(`${this.baseUrl}/users/${encodeURIComponent(id)}`, {
+        method: 'DELETE'
+      });
+      return res.ok;
+    } catch (e) {
+      console.warn('API deleteUser error:', e);
+      return false;
+    }
   }
 };
 

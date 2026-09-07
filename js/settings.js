@@ -56,9 +56,33 @@ const DMCSettings = {
           <button class="btn btn-outline btn-sm" onclick="DMCSettings.toggleBranch('${b.id}')">
             ${b.active ? 'تعطيل' : 'تفعيل'}
           </button>
+          <button class="btn btn-outline btn-sm" onclick="DMCSettings.deleteBranch('${b.id}')" title="حذف الفرع" style="color: #EF4444; border-color: rgba(239, 68, 68, 0.3);">
+            <i class="fa-regular fa-trash-can"></i> ${isAr ? 'حذف' : 'Delete'}
+          </button>
         </div>
       </div>
     `).join('');
+  },
+
+  deleteBranch(id) {
+    const isAr = typeof getLang === 'function' && getLang() === 'ar';
+    const branches = DMCStore.getBranches();
+    const branch = branches.find(b => b.id === id);
+    if (!branch) return;
+
+    if (branches.length <= 1) {
+      alert(isAr ? 'يجب أن يحتوي النظام على فرع واحد على الأقل.' : 'The system must have at least one branch.');
+      return;
+    }
+
+    if (confirm(isAr ? `هل أنت متأكد من رغبتك في حذف ${branch.nameAr}؟` : `Are you sure you want to delete ${branch.nameEn}?`)) {
+      const updated = branches.filter(b => b.id !== id);
+      DMCStore.saveBranches(updated);
+      this.renderBranches();
+      if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+        DMCApp.showToast(isAr ? 'تم حذف الفرع بنجاح' : 'Branch deleted successfully', 'success');
+      }
+    }
   },
 
   toggleBranch(id) {
@@ -94,7 +118,7 @@ const DMCSettings = {
     const container = document.getElementById('settings-qtypes-list');
     if (!container) return;
 
-    const isAr = getLang() === 'ar';
+    const isAr = typeof getLang === 'function' && getLang() === 'ar';
     const types = DMCStore.getQuotationTypes();
 
     container.innerHTML = types.map(t => `
@@ -107,9 +131,33 @@ const DMCSettings = {
           <span class="badge ${t.active ? 'badge-approved' : 'badge-closed'}">
             <span class="badge-dot"></span>${t.active ? 'نشط' : 'معطل'}
           </span>
+          <button class="btn btn-outline btn-sm" onclick="DMCSettings.deleteQuotationType('${t.id}')" title="حذف نوع العرض" style="color: #EF4444; border-color: rgba(239, 68, 68, 0.3);">
+            <i class="fa-regular fa-trash-can"></i> ${isAr ? 'حذف' : 'Delete'}
+          </button>
         </div>
       </div>
     `).join('');
+  },
+
+  deleteQuotationType(id) {
+    const isAr = typeof getLang === 'function' && getLang() === 'ar';
+    const types = DMCStore.getQuotationTypes();
+    const target = types.find(t => t.id === id);
+    if (!target) return;
+
+    if (types.length <= 1) {
+      alert(isAr ? 'يجب وجود نوع عرض واحد على الأقل.' : 'Must have at least one quotation type.');
+      return;
+    }
+
+    if (confirm(isAr ? `هل أنت متأكد من حذف ${target.nameAr}؟` : `Delete ${target.nameEn}?`)) {
+      const updated = types.filter(t => t.id !== id);
+      DMCStore.saveQuotationTypes(updated);
+      this.renderQuotationTypes();
+      if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+        DMCApp.showToast(isAr ? 'تم حذف نوع العرض بنجاح' : 'Quotation type deleted', 'success');
+      }
+    }
   },
 
   addQuotationType() {
@@ -134,7 +182,7 @@ const DMCSettings = {
     const container = document.getElementById('settings-ptypes-list');
     if (!container) return;
 
-    const isAr = getLang() === 'ar';
+    const isAr = typeof getLang === 'function' && getLang() === 'ar';
     const types = DMCStore.getProjectTypes();
 
     container.innerHTML = types.map(p => `
@@ -143,8 +191,34 @@ const DMCSettings = {
           <i class="fa-solid fa-city" style="color: var(--brand-gold);"></i>
           <span>${isAr ? p.nameAr : p.nameEn}</span>
         </div>
+        <div class="d-flex align-center gap-2">
+          <button class="btn btn-outline btn-sm" onclick="DMCSettings.deleteProjectType('${p.id}')" title="حذف نوع المشروع" style="color: #EF4444; border-color: rgba(239, 68, 68, 0.3);">
+            <i class="fa-regular fa-trash-can"></i> ${isAr ? 'حذف' : 'Delete'}
+          </button>
+        </div>
       </div>
     `).join('');
+  },
+
+  deleteProjectType(id) {
+    const isAr = typeof getLang === 'function' && getLang() === 'ar';
+    const types = DMCStore.getProjectTypes();
+    const target = types.find(p => p.id === id);
+    if (!target) return;
+
+    if (types.length <= 1) {
+      alert(isAr ? 'يجب وجود نوع مشروع واحد على الأقل.' : 'Must have at least one project type.');
+      return;
+    }
+
+    if (confirm(isAr ? `هل أنت متأكد من حذف ${target.nameAr}؟` : `Delete ${target.nameEn}?`)) {
+      const updated = types.filter(p => p.id !== id);
+      DMCStore.saveProjectTypes(updated);
+      this.renderProjectTypes();
+      if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+        DMCApp.showToast(isAr ? 'تم حذف نوع المشروع بنجاح' : 'Project type deleted', 'success');
+      }
+    }
   },
 
   addProjectType() {
@@ -193,9 +267,49 @@ const DMCSettings = {
           <button class="btn btn-outline btn-sm" onclick="DMCSettings.toggleUser('${u.id}')">
             ${u.active ? (isAr ? 'تعطيل' : 'Deactivate') : (isAr ? 'تفعيل' : 'Activate')}
           </button>
+          <button class="btn btn-outline btn-sm" onclick="DMCSettings.deleteUser('${u.id}')" title="${isAr ? 'حذف المستخدم' : 'Delete User'}" style="color: #EF4444; border-color: rgba(239, 68, 68, 0.3);">
+            <i class="fa-regular fa-trash-can"></i> ${isAr ? 'حذف' : 'Delete'}
+          </button>
         </div>
       </div>
     `).join('');
+  },
+
+  deleteUser(id) {
+    const isAr = typeof getLang === 'function' && getLang() === 'ar';
+    const users = DMCStore.getUsers();
+    const user = users.find(u => u.id === id);
+    if (!user) return;
+
+    const currentUser = DMCStore.getCurrentUser();
+    if (currentUser && currentUser.id === id) {
+      alert(isAr ? 'لا يمكنك حذف حسابك الحالي المسجل به الدخول.' : 'You cannot delete your currently logged-in account.');
+      return;
+    }
+
+    if (user.role === 'admin' && users.filter(u => u.role === 'admin' && u.active).length <= 1) {
+      alert(isAr ? 'لا يمكن حذف مدير النظام الوحيد النشط.' : 'Cannot delete the only active system administrator.');
+      return;
+    }
+
+    const confirmMsg = isAr 
+      ? `هل أنت متأكد من رغبتك في حذف المستخدم "${user.nameAr || user.nameEn}" نهائياً؟`
+      : `Are you sure you want to permanently delete user "${user.nameEn || user.nameAr}"?`;
+
+    if (confirm(confirmMsg)) {
+      const updatedUsers = users.filter(u => u.id !== id);
+      DMCStore.saveUsers(updatedUsers);
+
+      if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+        DMCApi.deleteUser(id).catch(e => console.warn('SQLite delete user error:', e));
+      }
+
+      this.closeUserModal();
+      this.renderUsers();
+      if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+        DMCApp.showToast(isAr ? 'تم حذف المستخدم بنجاح' : 'User deleted successfully', 'success');
+      }
+    }
   },
 
   toggleUser(id) {
@@ -241,6 +355,8 @@ const DMCSettings = {
     document.getElementById('user-form-email').value = user.email || '';
     document.getElementById('user-form-role').value = user.role || 'user';
     document.getElementById('user-form-active').value = user.active ? '1' : '0';
+    const delBtn = document.getElementById('btn-delete-user-modal');
+    if (delBtn) delBtn.style.display = 'inline-flex';
 
     modal.classList.add('active');
   },
@@ -263,7 +379,17 @@ const DMCSettings = {
     document.getElementById('user-form-role').value = 'user';
     document.getElementById('user-form-active').value = '1';
 
+    const delBtn = document.getElementById('btn-delete-user-modal');
+    if (delBtn) delBtn.style.display = 'none';
+
     modal.classList.add('active');
+  },
+
+  deleteCurrentUserFromModal() {
+    const id = document.getElementById('user-form-id').value;
+    if (id) {
+      this.deleteUser(id);
+    }
   },
 
   closeUserModal() {

@@ -1112,11 +1112,16 @@
             </div>
           </div>
 
-          <div class="modal-footer" style="padding: 1.25rem 0 0 0; border-top: 1px solid var(--border-color); margin-top: 1.25rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
-            <button type="button" class="btn btn-outline" onclick="DMCSettings.closeUserModal()">إلغاء / Cancel</button>
-            <button type="submit" class="btn btn-gold">
-              <i class="fa-solid fa-check"></i> حفظ التغييرات / Save User
+          <div class="modal-footer" style="padding: 1.25rem 0 0 0; border-top: 1px solid var(--border-color); margin-top: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+            <button type="button" id="btn-delete-user-modal" class="btn btn-outline" style="display: none; color: #EF4444; border-color: rgba(239, 68, 68, 0.4);" onclick="DMCSettings.deleteCurrentUserFromModal()">
+              <i class="fa-regular fa-trash-can"></i> <span>حذف المستخدم / Delete</span>
             </button>
+            <div style="display: flex; gap: 0.75rem; margin-inline-start: auto;">
+              <button type="button" class="btn btn-outline" onclick="DMCSettings.closeUserModal()">إلغاء / Cancel</button>
+              <button type="submit" class="btn btn-gold">
+                <i class="fa-solid fa-check"></i> حفظ التغييرات / Save User
+              </button>
+            </div>
           </div>
         </form>
       </div>

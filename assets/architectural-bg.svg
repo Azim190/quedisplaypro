@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bgDeep" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#051829"/>
+      <stop offset="45%" stop-color="#0B3D62"/>
+      <stop offset="100%" stop-color="#03121F"/>
+    </linearGradient>
+    <linearGradient id="goldRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCEAB3"/>
+      <stop offset="40%" stop-color="#D4AF37"/>
+      <stop offset="85%" stop-color="#9C7718"/>
+      <stop offset="100%" stop-color="#543F07"/>
+    </linearGradient>
+    <linearGradient id="towerGlow" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#D4AF37" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#0B3D62" stop-opacity="0.05"/>
+    </linearGradient>
+    <pattern id="cadGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#D4AF37" stroke-width="0.75" stroke-opacity="0.07"/>
+      <path d="M 200 0 L 0 0 0 200" fill="none" stroke="#4DA1DF" stroke-width="1" stroke-opacity="0.12"/>
+    </pattern>
+    <pattern id="isometricGrid" width="60" height="103.92" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 60 17.32 L 60 51.96 L 30 69.28 L 0 51.96 L 0 17.32 Z" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Deep Blue Canvas -->
+  <rect width="100%" height="100%" fill="url(#bgDeep)"/>
+  <rect width="100%" height="100%" fill="url(#cadGrid)"/>
+  <rect width="100%" height="100%" fill="url(#isometricGrid)"/>
+
+  <!-- Stylized Architectural Tower Silhouette (Left side like the Makkah Clock Tower in mockup) -->
+  <g id="tower-silhouette" transform="translate(80, 40)" opacity="0.35">
+    <!-- Main Tower Spire -->
+    <path d="M 120 860 L 120 400 L 135 260 L 145 160 L 150 70 L 153 30 L 155 10 L 157 30 L 160 70 L 165 160 L 175 260 L 190 400 L 190 860 Z" fill="url(#towerGlow)" stroke="#D4AF37" stroke-width="1.5"/>
+    <!-- Crescent Moon at Top -->
+    <path d="M 155 8 C 158 5 163 7 163 12 C 163 18 156 22 150 20 C 153 19 155 15 155 8 Z" fill="#D4AF37"/>
+    <!-- Clock Face Outline -->
+    <circle cx="155" cy="285" r="28" fill="#061F33" stroke="#D4AF37" stroke-width="2"/>
+    <circle cx="155" cy="285" r="23" fill="none" stroke="#D4AF37" stroke-width="0.75" stroke-dasharray="3,3"/>
+    <circle cx="155" cy="285" r="3" fill="#D4AF37"/>
+    <line x1="155" y1="285" x2="167" y2="280" stroke="#D4AF37" stroke-width="2"/>
+    <line x1="155" y1="285" x2="155" y2="267" stroke="#D4AF37" stroke-width="2"/>
+    
+    <!-- Architectural Stories / Horizontal Bands -->
+    <line x1="120" y1="460" x2="190" y2="460" stroke="#D4AF37" stroke-width="1"/>
+    <line x1="120" y1="520" x2="190" y2="520" stroke="#D4AF37" stroke-width="1"/>
+    <line x1="120" y1="580" x2="190" y2="580" stroke="#D4AF37" stroke-width="1"/>
+    <line x1="120" y1="640" x2="190" y2="640" stroke="#D4AF37" stroke-width="1"/>
+    <line x1="120" y1="700" x2="190" y2="700" stroke="#D4AF37" stroke-width="1"/>
+    <line x1="120" y1="760" x2="190" y2="760" stroke="#D4AF37" stroke-width="1"/>
+    
+    <!-- Adjacent Flanking Wings -->
+    <path d="M 40 860 L 40 500 L 115 470 L 115 860 Z" fill="#092B45" stroke="#D4AF37" stroke-width="1" opacity="0.6"/>
+    <path d="M 195 860 L 195 470 L 270 500 L 270 860 Z" fill="#092B45" stroke="#D4AF37" stroke-width="1" opacity="0.6"/>
+  </g>
+
+  <!-- Diagonal Geometric Slices (Direct visual identity elements from mockup) -->
+  <!-- Dark Blue Geometric Wedge -->
+  <polygon points="260,900 680,0 790,0 370,900" fill="#061F33" opacity="0.85"/>
+  <polygon points="320,900 740,0 760,0 340,900" fill="#0B3D62" opacity="0.5"/>
+  <!-- Gold Accent Diagonal Ribbons -->
+  <polygon points="230,900 650,0 664,0 244,900" fill="url(#goldRibbon)"/>
+  <polygon points="215,900 230,900 650,0 635,0" fill="#AA821C" opacity="0.4"/>
+  <line x1="680" y1="0" x2="260" y2="900" stroke="#D4AF37" stroke-width="2" opacity="0.8"/>
+
+  <!-- Blueprint Dimension Lines & Drafting Aesthetics -->
+  <g opacity="0.25" stroke="#D4AF37" stroke-width="1">
+    <line x1="50" y1="120" x2="350" y2="120" stroke-dasharray="8,4"/>
+    <line x1="50" y1="112" x2="50" y2="128"/>
+    <line x1="350" y1="112" x2="350" y2="128"/>
+    <text x="200" y="115" font-family="'Tajawal', 'Inter', monospace" font-size="11" fill="#D4AF37" text-anchor="middle">ELEVATION 601.00m</text>
+
+    <circle cx="1080" cy="240" r="160" fill="none" stroke-dasharray="4,6" stroke="#4DA1DF" stroke-opacity="0.3"/>
+    <circle cx="1080" cy="240" r="110" fill="none" stroke-dasharray="2,4" stroke="#D4AF37" stroke-opacity="0.2"/>
+  </g>
+</svg>

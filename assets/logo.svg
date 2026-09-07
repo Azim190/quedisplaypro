@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 110" width="100%" height="100%">
+  <defs>
+    <linearGradient id="dmcGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F3E7BE"/>
+      <stop offset="35%" stop-color="#D4AF37"/>
+      <stop offset="100%" stop-color="#AA821C"/>
+    </linearGradient>
+    <filter id="goldGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Left Text Group: DMC & Arabic Name -->
+  <g id="text-group" filter="url(#goldGlow)">
+    <!-- English DMC -->
+    <text x="10" y="44" font-family="'Tajawal', 'Inter', 'Segoe UI', sans-serif" font-size="44" font-weight="900" fill="url(#dmcGoldGrad)" letter-spacing="2">DMC</text>
+    <!-- Arabic Name -->
+    <text x="10" y="76" font-family="'Tajawal', 'Segoe UI', sans-serif" font-size="27" font-weight="800" fill="url(#dmcGoldGrad)" letter-spacing="1">دار مــكـة</text>
+    <!-- Subtitle Arabic -->
+    <text x="11" y="93" font-family="'Tajawal', sans-serif" font-size="11.5" font-weight="700" fill="url(#dmcGoldGrad)" letter-spacing="1.2">للاستشارات الهندسية</text>
+    <!-- Subtitle English -->
+    <text x="11" y="105" font-family="'Tajawal', 'Inter', sans-serif" font-size="8.5" font-weight="600" fill="url(#dmcGoldGrad)" letter-spacing="2.2">ENGINEERING CONSULTANCY</text>
+  </g>
+
+  <!-- Vertical Divider with Gold Accent -->
+  <line x1="262" y1="12" x2="262" y2="102" stroke="url(#dmcGoldGrad)" stroke-width="1.5" stroke-opacity="0.6"/>
+
+  <!-- Right Geometric Architectural Emblem (Matching the visual identity emblem) -->
+  <g id="emblem-group" transform="translate(272, 8)" filter="url(#goldGlow)">
+    <!-- Outer Double Border Box -->
+    <rect x="0" y="0" width="138" height="96" rx="4" fill="none" stroke="url(#dmcGoldGrad)" stroke-width="2.5"/>
+    <rect x="4" y="4" width="130" height="88" rx="2" fill="none" stroke="url(#dmcGoldGrad)" stroke-width="1" stroke-opacity="0.6"/>
+
+    <!-- Stylized Architectural Towers / Columns Line Art -->
+    <g stroke="url(#dmcGoldGrad)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Left Tower (Curved Spire) -->
+      <path d="M 22 70 L 22 28 C 22 18 36 12 46 12 L 46 70 Z"/>
+      <path d="M 32 20 L 32 70"/>
+      <circle cx="36" cy="28" r="2.5" fill="url(#dmcGoldGrad)"/>
+      <circle cx="36" cy="38" r="2.5" fill="url(#dmcGoldGrad)"/>
+      <circle cx="36" cy="48" r="2.5" fill="url(#dmcGoldGrad)"/>
+
+      <!-- Center Higher Tower -->
+      <path d="M 52 70 L 52 14 L 74 14 L 74 70 Z"/>
+      <line x1="58" y1="22" x2="68" y2="22"/>
+      <line x1="58" y1="30" x2="68" y2="30"/>
+      <line x1="58" y1="38" x2="68" y2="38"/>
+      <line x1="58" y1="46" x2="68" y2="46"/>
+      <line x1="58" y1="54" x2="68" y2="54"/>
+      <!-- Clock Circle in Tower -->
+      <circle cx="63" cy="22" r="4.5" fill="url(#dmcGoldGrad)"/>
+
+      <!-- Right Tower -->
+      <path d="M 80 70 L 80 26 L 102 26 L 102 70 Z"/>
+      <line x1="86" y1="34" x2="96" y2="34"/>
+      <line x1="86" y1="44" x2="96" y2="44"/>
+      <line x1="86" y1="54" x2="96" y2="54"/>
+
+      <!-- Additional Geometric Lines -->
+      <line x1="108" y1="40" x2="116" y2="40"/>
+      <line x1="108" y1="50" x2="116" y2="50"/>
+      <line x1="108" y1="60" x2="116" y2="60"/>
+    </g>
+
+    <!-- Base Horizon Line -->
+    <line x1="10" y1="70" x2="128" y2="70" stroke="url(#dmcGoldGrad)" stroke-width="2.5"/>
+
+    <!-- SINCE 1986 Plaque Banner -->
+    <rect x="18" y="74" width="102" height="15" rx="2" fill="url(#dmcGoldGrad)"/>
+    <text x="69" y="85.5" font-family="'Tajawal', 'Inter', sans-serif" font-size="9.5" font-weight="900" fill="#062138" text-anchor="middle" letter-spacing="2.2">SINCE 1986</text>
+  </g>
+</svg>

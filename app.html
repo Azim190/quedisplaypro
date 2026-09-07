@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DMC دار مكة للاستشارات الهندسية - نظام أرشفة وإدارة عروض الأسعار</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+  <!-- Fonts: Tajawal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Mobile Sidebar Backdrop -->
+  <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+  <div class="app-layout">
+    <!-- =====================================================================
+         SIDEBAR NAVIGATION
+         ===================================================================== -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <a href="#dashboard" style="display: block;">
+          <img src="assets/logo.svg" alt="DMC دار مكة للاستشارات الهندسية" class="sidebar-logo">
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Dashboard Link -->
+        <a href="#dashboard" class="nav-item active">
+          <i class="fa-solid fa-house"></i>
+          <span data-i18n="nav_dashboard">Dashboard</span>
+        </a>
+
+        <!-- Quotations Link -->
+        <a href="#quotations" class="nav-item">
+          <i class="fa-solid fa-file-contract"></i>
+          <span data-i18n="nav_quotations">Quotations</span>
+          <span class="nav-item-badge" id="sidebar-total-badge">248</span>
+        </a>
+
+        <!-- Add Quotation Button -->
+        <a href="javascript:void(0)" class="nav-item btn-trigger-add-quotation">
+          <i class="fa-solid fa-square-plus" style="color: var(--brand-gold);"></i>
+          <span data-i18n="nav_add_quotation">Add Quotation</span>
+        </a>
+
+        <!-- Reports Link -->
+        <a href="#reports" class="nav-item">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span data-i18n="nav_reports">Reports & Analytics</span>
+        </a>
+
+        <!-- Audit Log Link -->
+        <a href="#audit" class="nav-item">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span data-i18n="nav_audit">Audit Log</span>
+        </a>
+
+        <!-- Settings Link (Admin Only) -->
+        <a href="#settings" class="nav-item" id="nav-item-settings">
+          <i class="fa-solid fa-gear"></i>
+          <span data-i18n="nav_settings">Settings</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Footer (User Info & Logout) -->
+      <div class="sidebar-footer">
+        <div class="user-profile-widget">
+          <div class="user-avatar" id="sidebar-user-avatar">A</div>
+          <div class="user-info">
+            <span class="user-name" id="sidebar-user-name">Ahmed Mohammed</span>
+            <span class="user-role" id="sidebar-user-role">Administrator</span>
+          </div>
+        </div>
+        <button type="button" class="sidebar-logout-btn btn-trigger-logout">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span data-i18n="logout">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- =====================================================================
+         MAIN CONTENT SHELL
+         ===================================================================== -->
+    <div class="main-wrapper">
+      <!-- TOP HEADER BAR -->
+      <header class="top-header">
+        <div class="header-start">
+          <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle Sidebar">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="header-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="global-search-input" placeholder="Search quotations..." data-i18n-placeholder="search_placeholder" oninput="document.getElementById('filter-search').value = this.value; document.getElementById('filter-search').dispatchEvent(new Event('input'));">
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <!-- Bilingual Language Switcher -->
+          <button id="header-lang-btn" class="lang-switcher-btn" type="button" title="Switch Language">
+            <i class="fa-solid fa-globe" style="color: var(--brand-gold);"></i>
+            <span id="lang-btn-text" data-i18n="lang_toggle">English</span>
+          </button>
+
+          <!-- Light / Dark Mode Toggle Pill (Matching Visual Identity Mockup) -->
+          <div id="theme-toggle-pill" class="theme-toggle-pill" data-theme="light" title="Toggle Light / Dark Mode">
+            <div class="thumb">
+              <i class="fa-solid fa-sun"></i>
+            </div>
+            <div class="icon-slot"><i class="fa-regular fa-sun"></i></div>
+            <div class="icon-slot"><i class="fa-regular fa-moon"></i></div>
+          </div>
+
+          <!-- Notification Bell -->
+          <button class="notification-btn" type="button" title="Notifications" onclick="DMCApp.showToast('لا توجد تنبيهات جديدة في النظام', 'info')">
+            <i class="fa-regular fa-bell"></i>
+            <span class="notification-badge"></span>
+          </button>
+
+          <!-- User Profile Brief -->
+          <div class="d-flex align-center gap-2" style="cursor: pointer;" title="Profile">
+            <div class="user-avatar" id="header-user-avatar" style="width: 36px; height: 36px; font-size: 0.9rem;">A</div>
+            <div class="d-none d-md-flex flex-column">
+              <span id="header-user-name" style="font-weight: 700; font-size: 0.88rem; color: var(--text-main);">Ahmed Mohammed</span>
+              <span id="header-user-role" style="font-size: 0.75rem; color: var(--brand-gold);">Administrator</span>
+            </div>
+          </div>
+
+          <!-- Prominent + Add New Quotation Button -->
+          <button type="button" class="btn btn-gold btn-trigger-add-quotation">
+            <i class="fa-solid fa-plus"></i>
+            <span data-i18n="btn_add_quotation">+ Add New Quotation</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ===================================================================
+           VIEW 1: MAIN DASHBOARD
+           =================================================================== -->
+      <main id="view-dashboard" class="page-view page-content">
+        <!-- Page Title & Header -->
+        <div class="page-header">
+          <h1 class="page-title" data-i18n="nav_dashboard">Dashboard</h1>
+          <div class="d-flex align-center gap-2">
+            <span class="badge" style="background: rgba(212,175,55,0.15); color: #9A7416; font-size: 0.85rem;">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span data-i18n="rule_note">ملاحظة: هذا النظام مخصص للأرشفة والمتابعة فقط ولا يولد عروض أسعار.</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- 10 KPI CARDS (MATCHING VISUAL IDENTITY MOCKUP) -->
+        <section class="kpi-grid">
+          <!-- 1. Total Quotations -->
+          <div class="kpi-card kpi-total">
+            <div class="kpi-icon-wrap"><i class="fa-regular fa-file-lines"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-label" data-i18n="kpi_total_quotations">Total Quotations</span>
+              <span class="kpi-value" id="kpi-val-total">248</span>
+            </div>
+          </div>
+
+          <!-- 2. This Month -->
+          <div class="kpi-card kpi-month">
+            <div class="kpi-icon-wrap"><i class="fa-regular fa-calendar-check"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-label" data-i18n="kpi_this_month">This Month</span>
+              <span class="kpi-value" id="kpi-val-month">36</span>
+            </div>
+          </div>
+
+          <!-- 3. Approved -->
+          <div class="kpi-card kpi-approved">
+            <div class="kpi-icon-wrap"><i class="fa-regular fa-circle-check"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-label" data-i18n="kpi_approved">Approved</span>
+              <span class="kpi-value" id="kpi-val-approved">52</span>
+            </div>
+          </div>
+
+          <!-- 4. Closed -->
+          <div class="kpi-card kpi-closed">
+            <div class="kpi-icon-wrap"><i class="fa-regular fa-circle-xmark"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-label" data-i18n="kpi_closed">Closed</span>
+              <span class="kpi-value" id="kpi-val-closed">48</span>
+            </div>
+          </div>
+
+          <!-- 5. Ongoing -->
+          <div class="kpi-card kpi-ongoing">
+            <div class="kpi-icon-wrap"><i class="fa-regular fa-clock"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-label" data-i18n="kpi_ongoing">Ongoing</span>
+              <span class="kpi-value" id="kpi-val-ongoing">62</span>
+            </div>
+          </div>
+
+          <!-- 6. Not Started -->
+          <div class="kpi-card kpi-notstarted">
+            <div class="kpi-icon-wrap"><i class="fa-regular fa-circle-pause"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-label" data-i18n="kpi_not_started">Not Started</span>
+              <span class="kpi-value" id="kpi-val-notstarted">32</span>
+            </div>
+          </div>
+
+          <!-- 7. Completed -->
+          <div class="kpi-card kpi-completed">
+            <div class="kpi-icon-wrap"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-label" data-i18n="kpi_completed">Completed</span>
+              <span class="kpi-value" id="kpi-val-completed">28</span>
+            </div>
+          </div>
+
+          <!-- 8. New -->
+          <div class="kpi-card kpi-new">
+            <div class="kpi-icon-wrap"><i class="fa-regular fa-star"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-label" data-i18n="kpi_new">New</span>
+              <span class="kpi-value" id="kpi-val-new">16</span>
+            </div>
+          </div>
+
+          <!-- 9. Revised -->
+          <div class="kpi-card kpi-revised">
+            <div class="kpi-icon-wrap"><i class="fa-solid fa-arrows-rotate"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-label" data-i18n="kpi_revised">Revised</span>
+              <span class="kpi-value" id="kpi-val-revised">10</span>
+            </div>
+          </div>
+
+          <!-- 10. Highest Value -->
+          <div class="kpi-card kpi-highest">
+            <div class="kpi-icon-wrap"><i class="fa-solid fa-coins"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-label" data-i18n="kpi_highest_value">Highest Value</span>
+              <span class="kpi-value" id="kpi-val-highest">SAR 5,200,000</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             FILTER BAR (BRANCH, STATUS, DATE, TYPE, VALUE SORT, SEARCH)
+             =================================================================== -->
+        <section class="filter-bar">
+          <!-- Branch Filter -->
+          <div class="filter-select-wrap">
+            <select id="filter-branch" class="form-select">
+              <option value="all">All Branches</option>
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="filter-select-wrap">
+            <select id="filter-status" class="form-select">
+              <option value="all">All Statuses</option>
+            </select>
+          </div>
+
+          <!-- Date Filter -->
+          <div class="filter-select-wrap">
+            <select id="filter-date" class="form-select">
+              <option value="all" data-i18n="filter_date_all">All Periods</option>
+              <option value="today" data-i18n="filter_date_today">Today</option>
+              <option value="this_week" data-i18n="filter_date_week">This Week</option>
+              <option value="this_month" data-i18n="filter_date_month">This Month</option>
+              <option value="this_year" data-i18n="filter_date_year">This Year</option>
+            </select>
+          </div>
+
+          <!-- Quotation Type Filter -->
+          <div class="filter-select-wrap">
+            <select id="filter-type" class="form-select">
+              <option value="all">All Types</option>
+            </select>
+          </div>
+
+          <!-- Value Sort -->
+          <div class="filter-select-wrap">
+            <select id="filter-sort" class="form-select">
+              <option value="newest" data-i18n="filter_sort_newest">Newest Date</option>
+              <option value="highest" data-i18n="filter_sort_highest">Highest Value</option>
+              <option value="lowest" data-i18n="filter_sort_lowest">Lowest Value</option>
+              <option value="oldest" data-i18n="filter_sort_oldest">Oldest Date</option>
+            </select>
+          </div>
+
+          <!-- Filter Search -->
+          <div class="filter-search-wrap">
+            <div class="input-with-icon">
+              <i class="fa-solid fa-magnifying-glass input-icon"></i>
+              <input type="text" id="filter-search" class="form-control" placeholder="Search..." data-i18n-placeholder="search_placeholder">
+            </div>
+          </div>
+
+          <!-- Reset Button -->
+          <button type="button" id="btn-reset-filters" class="btn-reset-filters">
+            <i class="fa-solid fa-arrow-rotate-left"></i>
+            <span data-i18n="btn_reset_filters">Reset Filters</span>
+          </button>
+        </section>
+
+        <!-- ===================================================================
+             CHARTS GRID (MATCHING VISUAL IDENTITY MOCKUP)
+             =================================================================== -->
+        <!-- Row 1: Branch Bar, Status Doughnut, Type Doughnut -->
+        <section class="charts-grid-row-1">
+          <!-- Chart 1: Quotations by Branch -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <h2 class="chart-title" data-i18n="chart_branch_title">Quotations by Branch</h2>
+              <i class="fa-solid fa-chart-column" style="color: var(--brand-gold);"></i>
+            </div>
+            <div class="chart-body">
+              <canvas id="chart-branch"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Quotations by Status -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <h2 class="chart-title" data-i18n="chart_status_title">Quotations by Status</h2>
+              <i class="fa-solid fa-chart-pie" style="color: var(--brand-gold);"></i>
+            </div>
+            <div class="chart-body">
+              <canvas id="chart-status"></canvas>
+              <div class="chart-doughnut-center">
+                <div class="chart-doughnut-number" id="chart-status-total">248</div>
+                <div class="chart-doughnut-label">Total</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart 3: Quotations by Type -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <h2 class="chart-title" data-i18n="chart_type_title">Quotations by Type</h2>
+              <i class="fa-solid fa-diagram-project" style="color: var(--brand-gold);"></i>
+            </div>
+            <div class="chart-body">
+              <canvas id="chart-type"></canvas>
+              <div class="chart-doughnut-center">
+                <div class="chart-doughnut-number" id="chart-type-total">248</div>
+                <div class="chart-doughnut-label">Total</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Row 2: Monthly Quotations Trend & Quotation Value Summary -->
+        <section class="charts-grid-row-2">
+          <!-- Chart 4: Monthly Trend -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <h2 class="chart-title" data-i18n="chart_monthly_title">Monthly Quotations</h2>
+              <i class="fa-solid fa-chart-line" style="color: var(--brand-gold);"></i>
+            </div>
+            <div class="chart-body">
+              <canvas id="chart-monthly"></canvas>
+            </div>
+          </div>
+
+          <!-- Card 5: Quotation Value & Analysis Card -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <h2 class="chart-title" data-i18n="chart_value_title">Quotation Value</h2>
+              <i class="fa-solid fa-vault" style="color: var(--brand-gold);"></i>
+            </div>
+
+            <div class="value-summary-box">
+              <div class="value-summary-title" data-i18n="total_value_label">Total Quotation Value</div>
+              <div class="d-flex align-center justify-between">
+                <div class="value-summary-amount" id="val-summary-amount">SAR 18,750,000</div>
+                <span class="value-trend-badge"><i class="fa-solid fa-arrow-trend-up"></i> +12%</span>
+              </div>
+              <div style="height: 65px; margin-top: 0.75rem;">
+                <canvas id="chart-value-mini"></canvas>
+              </div>
+            </div>
+
+            <!-- Top Value Quotation Callout -->
+            <div class="top-quotation-callout">
+              <div class="top-quotation-title">
+                <i class="fa-solid fa-trophy" style="color: var(--brand-gold);"></i>
+                <span data-i18n="top_quotation_label">Top Value Quotation</span>
+              </div>
+              <div class="top-quotation-details">
+                <div>
+                  <span id="top-q-no" style="font-weight: 800; color: var(--brand-primary);">Q-2025-045</span>
+                  <div id="top-q-title" style="font-size: 0.85rem; color: var(--text-muted);">Hospital Project - Supervision</div>
+                </div>
+                <div id="top-q-val" class="top-quotation-price">SAR 5,200,000</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             SECTION: QUOTATIONS CREATED THIS MONTH
+             =================================================================== -->
+        <section class="table-section">
+          <div class="table-section-header">
+            <div>
+              <h2 style="font-size: 1.25rem; font-weight: 800;" data-i18n="month_section_title">Quotations Created This Month</h2>
+              <p style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="month_section_subtitle">List of quotations officially archived during current month</p>
+            </div>
+            <a href="#quotations" class="btn btn-outline btn-sm">
+              <span data-i18n="view_all">View All</span>
+              <i class="fa-solid fa-arrow-left"></i>
+            </a>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-i18n="col_no">#</th>
+                  <th data-i18n="col_quotation_no">Quotation No.</th>
+                  <th data-i18n="col_title">Title</th>
+                  <th data-i18n="col_branch">Branch</th>
+                  <th data-i18n="col_client">Client</th>
+                  <th data-i18n="col_project_type">Project Type</th>
+                  <th data-i18n="col_type">Type</th>
+                  <th data-i18n="col_amount">Amount</th>
+                  <th data-i18n="col_currency">Currency</th>
+                  <th data-i18n="col_status">Status</th>
+                  <th data-i18n="col_date">Date</th>
+                  <th data-i18n="col_actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="month-table-body">
+                <!-- Dynamically Rendered -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <!-- ===================================================================
+           VIEW 2: FULL QUOTATIONS ARCHIVE TABLE
+           =================================================================== -->
+      <section id="view-quotations" class="page-view page-content" style="display: none;">
+        <div class="page-header">
+          <h1 class="page-title" data-i18n="nav_quotations">Quotations Archive</h1>
+          <button type="button" class="btn btn-gold btn-trigger-add-quotation">
+            <i class="fa-solid fa-plus"></i>
+            <span data-i18n="btn_add_quotation">+ Add New Quotation</span>
+          </button>
+        </div>
+
+        <div class="table-section">
+          <!-- Filters for Main Table -->
+          <div class="d-flex align-center justify-between flex-wrap gap-2" style="margin-bottom: 0.5rem;">
+            <div class="d-flex align-center gap-2 flex-wrap" style="flex: 1;">
+              <div style="min-width: 200px;">
+                <input type="text" id="table-search-input" class="form-control" placeholder="Search archive..." data-i18n-placeholder="search_placeholder">
+              </div>
+              <div style="min-width: 150px;">
+                <select id="table-filter-branch" class="form-select"></select>
+              </div>
+              <div style="min-width: 150px;">
+                <select id="table-filter-status" class="form-select"></select>
+              </div>
+            </div>
+
+            <div class="d-flex align-center gap-2">
+              <span style="font-size: 0.85rem; color: var(--text-muted);">عرض:</span>
+              <select id="table-page-size" class="form-select" style="width: 85px;">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-i18n="col_no">#</th>
+                  <th data-i18n="col_quotation_no">Quotation No.</th>
+                  <th data-i18n="col_title">Title</th>
+                  <th data-i18n="col_client">Client</th>
+                  <th data-i18n="col_branch">Branch</th>
+                  <th data-i18n="col_type">Type</th>
+                  <th data-i18n="col_project_type">Project Type</th>
+                  <th data-i18n="col_amount">Amount</th>
+                  <th data-i18n="col_currency">Curr</th>
+                  <th data-i18n="col_status">Status</th>
+                  <th data-i18n="col_date">Date</th>
+                  <th data-i18n="col_valid_until">Valid Until</th>
+                  <th data-i18n="col_actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="quotations-table-body">
+                <!-- Dynamically Rendered -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="table-pagination">
+            <div id="table-showing-count">1 - 10 / 248</div>
+            <div class="pagination-controls" id="table-pagination-controls">
+              <!-- Dynamically Rendered -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           VIEW 3: REPORTS & ANALYTICS
+           =================================================================== -->
+      <section id="view-reports" class="page-view page-content" style="display: none;">
+        <div class="page-header">
+          <h1 class="page-title" data-i18n="nav_reports">Reports & Analytics</h1>
+        </div>
+
+        <div class="charts-grid-row-1">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h2 class="chart-title">حجم العروض حسب الفروع (القيمة المالية)</h2>
+            </div>
+            <div class="chart-body">
+              <p style="text-align: center; color: var(--text-muted);">فرع مكة يتصدر بأعلى قيمة إجمالية تجاوزت 22,000,000 ر.س يليه فرع جدة والمدينة المنورة.</p>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h2 class="chart-title">معدل اعتماد عروض الأسعار</h2>
+            </div>
+            <div class="chart-body">
+              <p style="text-align: center; color: var(--status-approved); font-size: 1.5rem; font-weight: 800;">21.0% معدل الاعتماد</p>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h2 class="chart-title">متوسط مدة سريان العرض</h2>
+            </div>
+            <div class="chart-body">
+              <p style="text-align: center; color: var(--brand-primary); font-size: 1.5rem; font-weight: 800;">90 يوماً</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           VIEW 4: AUDIT LOG TRAIL
+           =================================================================== -->
+      <section id="view-audit" class="page-view page-content" style="display: none;">
+        <div class="page-header">
+          <h1 class="page-title" data-i18n="nav_audit">Audit Log Trail</h1>
+        </div>
+
+        <div class="table-section">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>الإجراء / Action</th>
+                  <th>المستخدم / User</th>
+                  <th>التاريخ والتوقيت / Timestamp</th>
+                  <th>التفاصيل / Details</th>
+                  <th>القيمة الجديدة / New Value</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-body">
+                <!-- Dynamically Rendered -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           VIEW 5: SYSTEM SETTINGS (ADMIN ONLY)
+           =================================================================== -->
+      <section id="view-settings" class="page-view page-content" style="display: none;">
+        <div class="page-header">
+          <h1 class="page-title" data-i18n="settings_title">System Settings & Access Control</h1>
+        </div>
+
+        <div class="table-section">
+          <!-- Settings Navigation Tabs -->
+          <div class="settings-tabs">
+            <button type="button" class="settings-tab-btn active" data-tab="branches">
+              <i class="fa-solid fa-building"></i>
+              <span data-i18n="tab_branches">Branches (7)</span>
+            </button>
+            <button type="button" class="settings-tab-btn" data-tab="types">
+              <i class="fa-solid fa-file-contract"></i>
+              <span data-i18n="tab_types">Quotation Types</span>
+            </button>
+            <button type="button" class="settings-tab-btn" data-tab="project-types">
+              <i class="fa-solid fa-city"></i>
+              <span data-i18n="tab_project_types">Project Types</span>
+            </button>
+            <button type="button" class="settings-tab-btn" data-tab="users">
+              <i class="fa-solid fa-users"></i>
+              <span data-i18n="tab_users">Users & Roles</span>
+            </button>
+          </div>
+
+          <!-- Tab 1: Branches -->
+          <div id="tab-content-branches" class="settings-tab-content active">
+            <div class="d-flex justify-between align-center" style="margin-bottom: 1rem;">
+              <h3>الفروع السبعة المعتمدة في دار مكة</h3>
+              <button class="btn btn-gold btn-sm" onclick="DMCSettings.addBranch()">
+                <i class="fa-solid fa-plus"></i> إضافة فرع جديد
+              </button>
+            </div>
+            <div id="settings-branches-list" class="crud-list"></div>
+          </div>
+
+          <!-- Tab 2: Quotation Types -->
+          <div id="tab-content-types" class="settings-tab-content">
+            <div class="d-flex justify-between align-center" style="margin-bottom: 1rem;">
+              <h3>أنواع عروض الأسعار</h3>
+              <button class="btn btn-gold btn-sm" onclick="DMCSettings.addQuotationType()">
+                <i class="fa-solid fa-plus"></i> إضافة نوع عرض جديد
+              </button>
+            </div>
+            <div id="settings-qtypes-list" class="crud-list"></div>
+          </div>
+
+          <!-- Tab 3: Project Types -->
+          <div id="tab-content-project-types" class="settings-tab-content">
+            <div class="d-flex justify-between align-center" style="margin-bottom: 1rem;">
+              <h3>أنواع المشاريع الهندسية</h3>
+              <button class="btn btn-gold btn-sm" onclick="DMCSettings.addProjectType()">
+                <i class="fa-solid fa-plus"></i> إضافة نوع مشروع
+              </button>
+            </div>
+            <div id="settings-ptypes-list" class="crud-list"></div>
+          </div>
+
+          <!-- Tab 4: Users -->
+          <div id="tab-content-users" class="settings-tab-content">
+            <div class="d-flex justify-between align-center" style="margin-bottom: 1rem;">
+              <h3>إدارة مستخدمي النظام والصلاحيات</h3>
+              <button class="btn btn-gold btn-sm" onclick="DMCSettings.addUser()">
+                <i class="fa-solid fa-user-plus"></i> إضافة مستخدم جديد
+              </button>
+            </div>
+            <div id="settings-users-list" class="crud-list"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 1: ADD / EDIT QUOTATION (ARCHIVING ONLY - NO GENERATION)
+       ===================================================================== -->
+  <div id="modal-quotation-form" class="modal-overlay">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-title-icon"><i class="fa-solid fa-box-archive"></i></div>
+          <h2 class="modal-title" id="modal-form-title" data-i18n="modal_add_title">Archive New Quotation</h2>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="DMCForm.closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="quotation-form">
+          <!-- Business Rule Notice -->
+          <div style="background: rgba(11,61,98,0.06); border: 1px solid rgba(212,175,55,0.3); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-circle-info" style="color: var(--brand-gold);"></i>
+            <span data-i18n="rule_note">ملاحظة: هذا النظام مخصص للأرشفة والمتابعة فقط ولا يولد عروض أسعار.</span>
+          </div>
+
+          <!-- SECTION 1: BASIC INFORMATION -->
+          <div class="form-section-title" data-i18n="sec_basic_info">المعلومات الأساسية</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_quotation_no">رقم عرض السعر</span> <span class="required">*</span></label>
+              <input type="text" id="form-quotation-no" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_branch">الفرع</span> <span class="required">*</span></label>
+              <select id="form-branch" class="form-select" required></select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_quotation_title">عنوان عرض السعر (عربي)</span> <span class="required">*</span></label>
+              <input type="text" id="form-title-ar" class="form-control" placeholder="مثال: إشراف هندسي على مشروع برج النور" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span>عنوان عرض السعر (English)</span></label>
+              <input type="text" id="form-title-en" class="form-control" placeholder="e.g. Supervision for Al-Noor Tower">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_client_name">اسم العميل / الجهة (عربي)</span> <span class="required">*</span></label>
+              <input type="text" id="form-client-ar" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span>اسم العميل / الجهة (English)</span></label>
+              <input type="text" id="form-client-en" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_project_name">اسم المشروع (عربي)</span></label>
+              <input type="text" id="form-project-ar" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span>اسم المشروع (English)</span></label>
+              <input type="text" id="form-project-en" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_quotation_type">نوع عرض السعر</span> <span class="required">*</span></label>
+              <select id="form-quotation-type" class="form-select" required></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_project_type">نوع المشروع</span> <span class="required">*</span></label>
+              <select id="form-project-type" class="form-select" required></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_status">حالة العرض</span> <span class="required">*</span></label>
+              <select id="form-status" class="form-select" required></select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_creation_date">تاريخ إنشاء العرض</span> <span class="required">*</span></label>
+              <input type="date" id="form-creation-date" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_valid_until">صالح حتى تاريخ</span></label>
+              <input type="date" id="form-valid-until" class="form-control">
+            </div>
+          </div>
+
+          <!-- SECTION 2: FINANCIAL INFORMATION -->
+          <div class="form-section-title" data-i18n="sec_financial_info">المعلومات المالية</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_amount">مبلغ العرض (بدون ضريبة)</span> <span class="required">*</span></label>
+              <input type="number" id="form-amount" class="form-control" min="0" step="100" placeholder="مثال: 50000" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_currency">العملة</span> <span class="required">*</span></label>
+              <select id="form-currency" class="form-select"></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_vat_rate">ضريبة القيمة المضافة (15%)</span></label>
+              <input type="text" id="form-vat" class="form-control" readonly style="background-color: var(--bg-app); font-weight: 700;">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_total_amount">الإجمالي النهائي شامل الضريبة</span></label>
+              <input type="text" id="form-total" class="form-control" readonly style="font-weight: 800; font-size: 1.1rem; color: var(--brand-primary); background-color: var(--bg-app);">
+            </div>
+          </div>
+
+          <!-- SECTION 3: FILE LINK (ONEDRIVE / CLOUD / LOCAL ARCHIVE) -->
+          <div class="form-section-title" data-i18n="sec_file_attachment">رابط وثيقة عرض السعر (الملف المؤرشف)</div>
+          <div class="form-group">
+            <label class="form-label">
+              <span data-i18n="lbl_file_link">رابط ملف عرض السعر (OneDrive / سحابي / شبكة)</span>
+              <span class="required">*</span>
+            </label>
+            <div class="d-flex align-center gap-2">
+              <div class="input-with-icon" style="flex: 1;">
+                <i class="fa-solid fa-link input-icon"></i>
+                <input type="url" id="form-file-link" class="form-control" placeholder="https://onedrive.live.com/... أو أي رابط سحابي للملف" required>
+              </div>
+              <button type="button" class="btn btn-outline" onclick="DMCForm.testLink()" title="اختبار الرابط / Test Link">
+                <i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--brand-gold);"></i>
+                <span data-i18n="btn_test_link">اختبار الرابط</span>
+              </button>
+            </div>
+            <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem;" data-i18n="lbl_file_link_desc">
+              يمكنك لصق رابط المشاركة المباشر من OneDrive أو SharePoint أو أي سحابة تخزين
+            </span>
+          </div>
+
+          <div class="form-row" style="margin-top: 0.75rem;">
+            <div class="form-group">
+              <label class="form-label"><span>اسم الملف / وثيقة العرض</span></label>
+              <input type="text" id="form-file-name" class="form-control" placeholder="مثال: DMC_Quotation_Document.pdf">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span>منصة حفظ الملف</span></label>
+              <select id="form-file-type" class="form-select">
+                <option value="Microsoft OneDrive">Microsoft OneDrive</option>
+                <option value="SharePoint">SharePoint</option>
+                <option value="PDF Cloud Document">PDF Cloud Document</option>
+                <option value="Google Drive">Google Drive</option>
+                <option value="Internal Server">خادم الشركة الداخلي / Local Server</option>
+                <option value="Direct Web Link">رابط مباشر / Web Link</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 1rem;">
+            <label class="form-label"><span>ملاحظات إضافية / Additional Notes</span></label>
+            <textarea id="form-notes" class="form-control" rows="2"></textarea>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="DMCForm.closeModal()" data-i18n="btn_cancel">Cancel</button>
+        <button type="submit" form="quotation-form" class="btn btn-gold">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span data-i18n="btn_save_quotation">Save & Archive Quotation</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 2: QUOTATION DETAILS PROFILE VIEW
+       ===================================================================== -->
+  <div id="modal-quotation-details" class="modal-overlay">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-title-icon"><i class="fa-regular fa-file-lines"></i></div>
+          <div>
+            <h2 class="modal-title" id="detail-modal-qno">Q-2025-045</h2>
+            <div id="detail-modal-status" style="margin-top: 0.25rem;"></div>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="DMCDetails.closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Tabs in Details -->
+        <div class="d-flex gap-2" style="border-bottom: 1px solid var(--border-color); margin-bottom: 1.25rem;">
+          <button class="settings-tab-btn detail-tab-btn active" id="detail-tab-btn-overview" onclick="DMCDetails.switchTab('overview')">
+            <i class="fa-solid fa-circle-info"></i> <span data-i18n="tab_overview">نظرة عامة</span>
+          </button>
+          <button class="settings-tab-btn detail-tab-btn" id="detail-tab-btn-revisions" onclick="DMCDetails.switchTab('revisions')">
+            <i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="tab_revisions">سجل التعديلات والنسخ (Revisions)</span>
+          </button>
+        </div>
+
+        <!-- Tab 1: Overview Details -->
+        <div id="detail-pane-overview" class="detail-tab-pane">
+          <div class="detail-grid">
+            <div class="detail-card">
+              <div class="detail-card-title"><i class="fa-solid fa-building-circle-check" style="color: var(--brand-gold);"></i> بيانات عرض السعر الأساسية</div>
+              <div class="detail-field-list">
+                <div class="detail-field">
+                  <span class="detail-field-label">عنوان العرض:</span>
+                  <span class="detail-field-value" id="detail-title">-</span>
+                </div>
+                <div class="detail-field">
+                  <span class="detail-field-label">العميل:</span>
+                  <span class="detail-field-value" id="detail-client">-</span>
+                </div>
+                <div class="detail-field">
+                  <span class="detail-field-label">المشروع:</span>
+                  <span class="detail-field-value" id="detail-project">-</span>
+                </div>
+                <div class="detail-field">
+                  <span class="detail-field-label">الفرع:</span>
+                  <span class="detail-field-value" id="detail-branch">-</span>
+                </div>
+                <div class="detail-field">
+                  <span class="detail-field-label">نوع العرض:</span>
+                  <span class="detail-field-value" id="detail-qtype">-</span>
+                </div>
+                <div class="detail-field">
+                  <span class="detail-field-label">نوع المشروع:</span>
+                  <span class="detail-field-value" id="detail-ptype">-</span>
+                </div>
+                <div class="detail-field">
+                  <span class="detail-field-label">تاريخ الإنشاء:</span>
+                  <span class="detail-field-value" id="detail-created">-</span>
+                </div>
+                <div class="detail-field">
+                  <span class="detail-field-label">ساري حتى:</span>
+                  <span class="detail-field-value" id="detail-valid">-</span>
+                </div>
+              </div>
+
+              <!-- Financial Breakdown -->
+              <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--border-color);">
+                <div class="detail-card-title"><i class="fa-solid fa-coins" style="color: var(--brand-gold);"></i> البيانات المالية</div>
+                <div class="detail-field-list">
+                  <div class="detail-field">
+                    <span class="detail-field-label">المبلغ الأساسي:</span>
+                    <span class="detail-field-value" id="detail-amount">-</span>
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field-label">ضريبة القيمة المضافة (15%):</span>
+                    <span class="detail-field-value" id="detail-vat">-</span>
+                  </div>
+                  <div class="detail-field" style="grid-column: span 2;">
+                    <span class="detail-field-label">المبلغ الإجمالي شامل الضريبة:</span>
+                    <span class="detail-field-value" id="detail-total" style="font-size: 1.25rem; color: var(--brand-primary); font-weight: 900;">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Document Archive & Quick Actions -->
+            <div class="detail-card d-flex flex-column justify-between">
+              <div>
+                <div class="detail-card-title"><i class="fa-solid fa-box-archive" style="color: var(--brand-gold);"></i> الوثيقة المؤرشفة</div>
+                <div style="background: var(--bg-app); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; text-align: center; margin-bottom: 1rem;">
+                  <i class="fa-regular fa-file-pdf" style="font-size: 3rem; color: #EF4444; margin-bottom: 0.5rem; display: block;"></i>
+                  <div id="detail-file-name" style="font-weight: 700; font-size: 0.88rem; word-break: break-all;">Quotation.pdf</div>
+                  <div id="detail-file-size" style="font-size: 0.78rem; color: var(--text-muted);">1.8 MB</div>
+                </div>
+
+                <div class="detail-field" style="margin-bottom: 0.65rem;">
+                  <span class="detail-field-label" data-i18n="lbl_uploaded_by">تمت الأرشفة بواسطة:</span>
+                  <span class="detail-field-value" id="detail-uploaded-by">-</span>
+                </div>
+                <div class="detail-field">
+                  <span class="detail-field-label" data-i18n="lbl_upload_date">تاريخ وتوقيت الأرشفة:</span>
+                  <span class="detail-field-value" id="detail-upload-date">-</span>
+                </div>
+              </div>
+
+              <div>
+                <!-- Prominent OPEN QUOTATION button matching specification -->
+                <button type="button" class="btn-open-file-lg" onclick="DMCDetails.openActiveFile()">
+                  <i class="fa-regular fa-file-pdf"></i>
+                  <span data-i18n="btn_open_quotation">فتح وثيقة عرض السعر المؤرشفة</span>
+                </button>
+
+                <button type="button" class="btn btn-outline w-100" style="margin-top: 0.65rem;" onclick="DMCDetails.addRevisionForActive()">
+                  <i class="fa-solid fa-code-branch"></i>
+                  <span data-i18n="action_add_revision">تسجيل نسخة معدلة (Add Revision)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Revisions Timeline -->
+        <div id="detail-pane-revisions" class="detail-tab-pane" style="display: none;">
+          <div class="d-flex justify-between align-center" style="margin-bottom: 1rem;">
+            <h4>سجل التعديلات والإصدارات المحفوظة</h4>
+            <button class="btn btn-gold btn-sm" onclick="DMCDetails.addRevisionForActive()">
+              <i class="fa-solid fa-plus"></i> إضافة تعديل جديد
+            </button>
+          </div>
+          <div id="detail-revisions-list" class="revision-timeline">
+            <!-- Dynamically Rendered -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 3: REGISTER REVISION
+       ===================================================================== -->
+  <div id="modal-revision" class="modal-overlay">
+    <div class="modal-container modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title" id="revision-modal-title" data-i18n="modal_revision_title">تسجيل نسخة معدلة لعرض السعر</h3>
+        <button type="button" class="modal-close-btn" onclick="DMCRevisions.closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="revision-form">
+        <div class="modal-body">
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            سيتم حفظ هذه النسخة ضمن أرشيف العرض مع الحفاظ التام على النسخة الأصلية وتحديث حالة العرض إلى "متغيرة (معدلة)".
+          </p>
+
+          <div class="form-group">
+            <label class="form-label" data-i18n="lbl_revision_notes">ملاحظات التعديل وأسباب التغيير <span class="required">*</span></label>
+            <textarea id="revision-notes" class="form-control" rows="3" placeholder="أدخل أسباب التعديل وتفاصيله..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" data-i18n="lbl_revision_file">ملف العرض المعدل الجديد</label>
+            <input type="file" id="revision-file-input" class="form-control" accept=".pdf,.docx,.xlsx,.jpg,.png">
+            <div id="revision-file-name-label" style="font-size: 0.8rem; color: var(--brand-primary); margin-top: 0.35rem; font-weight: 700;"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="DMCRevisions.closeModal()" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="btn btn-gold" data-i18n="btn_save_revision">حفظ النسخة المعدلة</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 4: QUICK STATUS CHANGE
+       ===================================================================== -->
+  <div id="modal-quick-status" class="modal-overlay">
+    <div class="modal-container modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title" data-i18n="action_change_status">تغيير حالة عرض السعر</h3>
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('modal-quick-status').classList.remove('active')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="quick-status-id">
+        <div class="form-group">
+          <label class="form-label">اختر الحالة الجديدة:</label>
+          <select id="quick-status-select" class="form-select">
+            <option value="approved">معتمدة / Approved</option>
+            <option value="ongoing">جارية / Ongoing</option>
+            <option value="notstarted">لم تبدأ / Not Started</option>
+            <option value="completed">منتهية / Completed</option>
+            <option value="closed">مغلقة / Closed</option>
+            <option value="new">جديدة / New</option>
+            <option value="revised">متغيرة / Revised</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-quick-status').classList.remove('active')" data-i18n="btn_cancel">إلغاء</button>
+        <button type="button" class="btn btn-gold" onclick="DMCQuotations.saveQuickStatus()">حفظ التغيير</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       APPLICATION JAVASCRIPT BUNDLE
+       ===================================================================== -->
+  <script src="js/i18n.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/quotations.js"></script>
+  <script src="js/form.js"></script>
+  <script src="js/details.js"></script>
+  <script src="js/revisions.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/audit.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

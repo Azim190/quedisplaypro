@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول | دار مكة للاستشارات الهندسية (DMC)</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+  <!-- Google Fonts: Tajawal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/login.css">
+</head>
+<body class="login-page-body">
+
+  <div class="login-container">
+    <div class="login-card">
+      <!-- DMC Logo -->
+      <div class="login-logo-wrap">
+        <img src="assets/logo.svg" alt="DMC دار مكة للاستشارات الهندسية" class="login-logo">
+      </div>
+
+      <!-- Welcome Title -->
+      <div class="login-title-group">
+        <h1 class="login-title" data-i18n="login_welcome">Welcome</h1>
+        <p class="login-subtitle" data-i18n="login_subtitle_text">Sign in to Quotation Archive & Dashboard</p>
+      </div>
+
+      <!-- Error Alert Box -->
+      <div id="login-error-alert" style="display: none; background: rgba(239, 68, 68, 0.2); border: 1px solid #EF4444; color: #FECACA; padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; font-size: 0.88rem; text-align: center; font-weight: 700;">
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="login-form">
+        <!-- National ID / ID Number -->
+        <div class="form-group">
+          <label class="form-label" for="national-id">
+            <span data-i18n="lbl_national_id">National ID / ID Number</span>
+          </label>
+          <div class="login-input-wrap">
+            <i class="fa-regular fa-id-card login-icon left-icon"></i>
+            <input type="text" id="national-id" class="login-input" placeholder="10 Digits (e.g. 1234567890)" required autocomplete="username">
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label" for="password">
+            <span data-i18n="lbl_password">Password</span>
+          </label>
+          <div class="login-input-wrap">
+            <i class="fa-solid fa-lock login-icon left-icon"></i>
+            <input type="password" id="password" class="login-input" placeholder="••••••••" required autocomplete="current-password">
+            <button type="button" id="toggle-password-btn" class="toggle-password-btn" title="Toggle password visibility">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember Me & Forgot Password -->
+        <div class="login-options-row">
+          <label class="remember-me-label">
+            <input type="checkbox" id="remember-me" class="remember-checkbox" checked>
+            <span data-i18n="remember_me">Remember me</span>
+          </label>
+          <a href="#" class="forgot-password-link" onclick="alert('يرجى التواصل مع مسؤول تقنية المعلومات في دار مكة لإعادة تعيين كلمة المرور'); return false;" data-i18n="forgot_password">
+            Forgot password?
+          </a>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn-login-submit">
+          <span data-i18n="btn_login">Login to System</span>
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        </button>
+
+        <!-- Quick Demo Credentials Box -->
+        <div class="demo-credentials-box">
+          <div class="demo-title">
+            <i class="fa-solid fa-key"></i>
+            <span data-i18n="login_demo_hint">Quick demo credentials:</span>
+          </div>
+          <div class="demo-creds-grid">
+            <div id="demo-admin-fill" class="demo-badge">
+              <strong>Admin:</strong> 1234567890<br>
+              <small style="color: var(--brand-gold);">Pass: admin123</small>
+            </div>
+            <div id="demo-user-fill" class="demo-badge">
+              <strong>User:</strong> 0987654321<br>
+              <small style="color: var(--brand-gold);">Pass: user123</small>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <!-- Language Switcher & Credits -->
+      <div class="login-footer-actions">
+        <button id="login-lang-btn" class="login-lang-pill" type="button">
+          <span>English</span>
+          <i class="fa-solid fa-globe globe-icon"></i>
+          <span>العربية</span>
+        </button>
+        <div class="login-credits">
+          DMC QUOTATION ARCHIVE & DASHBOARD • SINCE 1986
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/i18n.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      DMCAuth.initLogin();
+    });
+  </script>
+</body>
+</html>

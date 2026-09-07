@@ -156,6 +156,11 @@ const DMCDashboard = {
     const totalCount = filteredQuotations.length;
     this.setKpiText('kpi-val-total', totalCount);
 
+    // Update sidebar badge
+    const allTotal = DMCStore.getQuotations().length;
+    const sidebarBadge = document.getElementById('sidebar-total-badge');
+    if (sidebarBadge) sidebarBadge.textContent = allTotal;
+
     // 2. This Month
     const thisMonthCount = filteredQuotations.filter(q => {
       const d = new Date(q.creationDate);

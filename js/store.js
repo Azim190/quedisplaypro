@@ -45,7 +45,7 @@ const DMCStore = {
     if (typeof DMCApi === 'undefined' || !DMCApi.isConnected) return;
     try {
       const serverQuotations = await DMCApi.getQuotations();
-      if (serverQuotations && Array.isArray(serverQuotations) && serverQuotations.length > 0) {
+      if (serverQuotations && Array.isArray(serverQuotations)) {
         localStorage.setItem(STORAGE_KEYS.QUOTATIONS, JSON.stringify(serverQuotations));
         window.dispatchEvent(new CustomEvent('dmc-data-changed'));
       }
@@ -147,22 +147,17 @@ const DMCStore = {
     localStorage.setItem(STORAGE_KEYS.STATUSES, JSON.stringify(statuses));
     localStorage.setItem(STORAGE_KEYS.CURRENCIES, JSON.stringify(currencies));
 
-    // 7. Seed 248 Realistic Quotations Matching Mockup Distribution Exactly:
-    // Approved: 52, Closed: 48, Ongoing: 62, Not Started: 32, Completed: 28, New: 16, Revised: 10
-    // Total = 248!
-    // Current Month = 36 quotations
-    // Highest Value = SAR 5,200,000 (Hospital Project - Supervision, Q-2025-045)
-    const quotations = this.generateSeedQuotations(branches, quotationTypes, projectTypes);
-    localStorage.setItem(STORAGE_KEYS.QUOTATIONS, JSON.stringify(quotations));
+    // 7. Initial Quotations Archive (Empty for fresh production use)
+    localStorage.setItem(STORAGE_KEYS.QUOTATIONS, JSON.stringify([]));
 
     // 8. Seed Sample Audit Logs
     const auditLogs = [
       {
         id: 'log_1',
-        action: 'System Seeded',
+        action: 'System Initialized',
         userName: 'Ahmed Mohammed Al-Zahrani',
         date: new Date().toISOString(),
-        details: 'Initial 248 quotation records and 7 branches archived successfully.',
+        details: 'System configuration initialized with 7 branches. Ready for quotation archiving.',
         quotationNo: 'SYSTEM'
       }
     ];

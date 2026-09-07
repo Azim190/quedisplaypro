@@ -581,6 +581,47 @@ app.get('/api/audit-logs', (req, res) => {
   res.json(logs);
 });
 
+// Users Management Endpoints
+app.get('/api/users', (req, res) => {
+  const users = db.prepare(`
+    SELECT id, national_id as nationalId, name_ar as nameAr, name_en as nameEn,
+           role, title_ar as titleAr, title_en as titleEn, email, active
+    FROM users
+  `).all();
+  res.json(users);
+});
+
+app.post('/api/users', (req, res) => {
+  try {
+    const { id, nationalId, password, nameAr, nameEn, role, titleAr, titleEn, email, active } = req.body;
+    const userId = id || 'u_' + Date.now();
+    const existing = db.prepare('SELECT * FROM users WHERE id = ? OR national_id = ?').get(userId, nationalId);
+
+    const userPass = password && password.trim() ? password.trim() : (existing ? existing.password : 'user123');
+
+    db.prepare(`
+      INSERT OR REPLACE INTO users (id, national_id, password, name_ar, name_en, role, title_ar, title_en, email, active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      userId,
+      nationalId,
+      userPass,
+      nameAr || '',
+      nameEn || '',
+      role || 'user',
+      titleAr || '',
+      titleEn || '',
+      email || `${nationalId}@dmc-consulting.sa`,
+      active !== undefined ? (active ? 1 : 0) : 1
+    );
+
+    addAuditLog(existing ? 'User Updated' : 'User Created', 'Admin', userId, `User ${nameEn || nameAr} saved.`);
+    res.json({ message: 'User saved successfully', id: userId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Start Server
 app.listen(PORT, () => {
   console.log(`DMC Quotation Archiving Server is running on http://localhost:${PORT}`);

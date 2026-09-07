@@ -168,27 +168,30 @@ const DMCSettings = {
     const container = document.getElementById('settings-users-list');
     if (!container) return;
 
-    const isAr = getLang() === 'ar';
+    const isAr = typeof getLang === 'function' && getLang() === 'ar';
     const users = DMCStore.getUsers();
 
     container.innerHTML = users.map(u => `
       <div class="crud-item">
         <div class="crud-item-name">
-          <div class="user-avatar" style="width: 34px; height: 34px; font-size: 0.85rem;">${u.nameEn.charAt(0)}</div>
+          <div class="user-avatar" style="width: 34px; height: 34px; font-size: 0.85rem;">${(u.nameEn || 'U').charAt(0)}</div>
           <div>
             <div style="font-weight: 700;">${isAr ? u.nameAr : u.nameEn}</div>
-            <div style="font-size: 0.78rem; color: var(--text-muted);">${u.nationalId} • ${u.email}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">${u.nationalId} • ${u.email || (u.titleAr || u.titleEn || '')}</div>
           </div>
         </div>
-        <div class="d-flex align-center gap-2">
+        <div class="d-flex align-center gap-2 flex-wrap">
           <span class="badge ${u.role === 'admin' ? 'badge-new' : 'badge-ongoing'}">
-            ${u.role === 'admin' ? 'مدير نظام / Admin' : 'مستخدم عادي / Engineer'}
+            ${u.role === 'admin' ? (isAr ? 'مدير نظام' : 'Admin') : (isAr ? 'مهندس استشاري' : 'Engineer')}
           </span>
           <span class="badge ${u.active ? 'badge-approved' : 'badge-closed'}">
-            <span class="badge-dot"></span>${u.active ? 'نشط' : 'معطل'}
+            <span class="badge-dot"></span>${u.active ? (isAr ? 'نشط' : 'Active') : (isAr ? 'معطل' : 'Inactive')}
           </span>
+          <button class="btn btn-outline btn-sm" onclick="DMCSettings.openEditUser('${u.id}')" title="تعديل بيانات المستخدم" style="font-weight: 700;">
+            <i class="fa-regular fa-pen-to-square"></i> ${isAr ? 'تعديل' : 'Edit'}
+          </button>
           <button class="btn btn-outline btn-sm" onclick="DMCSettings.toggleUser('${u.id}')">
-            ${u.active ? 'تعطيل' : 'تفعيل'}
+            ${u.active ? (isAr ? 'تعطيل' : 'Deactivate') : (isAr ? 'تفعيل' : 'Activate')}
           </button>
         </div>
       </div>
@@ -205,33 +208,139 @@ const DMCSettings = {
       }
       user.active = !user.active;
       DMCStore.saveUsers(users);
-      DMCApp.showToast('تم تحديث حالة المستخدم بنجاح', 'success');
+
+      if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+        DMCApi.saveUser(user).catch(e => console.warn('SQLite user status save error:', e));
+      }
+
+      this.renderUsers();
+      if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+        DMCApp.showToast('تم تحديث حالة المستخدم بنجاح / User status updated', 'success');
+      }
     }
   },
 
+  openEditUser(id) {
+    const users = DMCStore.getUsers();
+    const user = users.find(u => u.id === id);
+    if (!user) return;
+
+    const modal = document.getElementById('modal-user-form');
+    if (!modal) return;
+
+    document.getElementById('modal-user-title').textContent = (typeof getLang === 'function' && getLang() === 'ar')
+      ? 'تعديل بيانات المستخدم'
+      : 'Edit User Profile';
+
+    document.getElementById('user-form-id').value = user.id;
+    document.getElementById('user-form-national-id').value = user.nationalId || '';
+    document.getElementById('user-form-password').value = '';
+    document.getElementById('user-form-name-ar').value = user.nameAr || '';
+    document.getElementById('user-form-name-en').value = user.nameEn || '';
+    document.getElementById('user-form-title').value = user.titleAr || user.titleEn || '';
+    document.getElementById('user-form-email').value = user.email || '';
+    document.getElementById('user-form-role').value = user.role || 'user';
+    document.getElementById('user-form-active').value = user.active ? '1' : '0';
+
+    modal.classList.add('active');
+  },
+
   addUser() {
-    const nationalId = prompt('رقم الهوية الوطنية (10 أرقام):');
-    if (!nationalId) return;
-    const nameAr = prompt('الاسم بالكامل (عربي):');
-    const nameEn = prompt('Full Name (English):');
-    const password = prompt('كلمة المرور المؤقتة:') || 'pass123';
-    const role = confirm('هل المستخدم مدير نظام (Admin)؟\nنعم = Admin، إلغاء = Standard User') ? 'admin' : 'user';
+    const modal = document.getElementById('modal-user-form');
+    if (!modal) return;
+
+    document.getElementById('modal-user-title').textContent = (typeof getLang === 'function' && getLang() === 'ar')
+      ? 'إضافة مستخدم جديد'
+      : 'Add New User';
+
+    document.getElementById('user-form-id').value = '';
+    document.getElementById('user-form-national-id').value = '';
+    document.getElementById('user-form-password').value = '';
+    document.getElementById('user-form-name-ar').value = '';
+    document.getElementById('user-form-name-en').value = '';
+    document.getElementById('user-form-title').value = '';
+    document.getElementById('user-form-email').value = '';
+    document.getElementById('user-form-role').value = 'user';
+    document.getElementById('user-form-active').value = '1';
+
+    modal.classList.add('active');
+  },
+
+  closeUserModal() {
+    const modal = document.getElementById('modal-user-form');
+    if (modal) modal.classList.remove('active');
+  },
+
+  saveUserForm(event) {
+    if (event) event.preventDefault();
+
+    const id = document.getElementById('user-form-id').value.trim();
+    const nationalId = document.getElementById('user-form-national-id').value.trim();
+    const password = document.getElementById('user-form-password').value.trim();
+    const nameAr = document.getElementById('user-form-name-ar').value.trim();
+    const nameEn = document.getElementById('user-form-name-en').value.trim();
+    const title = document.getElementById('user-form-title').value.trim();
+    const email = document.getElementById('user-form-email').value.trim();
+    const role = document.getElementById('user-form-role').value;
+    const active = document.getElementById('user-form-active').value === '1';
+
+    if (!nationalId || !nameAr || !nameEn) {
+      alert('يرجى تعبئة الحقول الإلزامية (رقم الهوية والاسم)');
+      return;
+    }
 
     const users = DMCStore.getUsers();
-    users.push({
-      id: 'u_' + Date.now(),
-      nationalId: nationalId.trim(),
-      password: password,
-      nameAr: nameAr || nameEn,
-      nameEn: nameEn || nameAr,
-      role: role,
-      titleAr: role === 'admin' ? 'مدير نظام' : 'مهندس استشاري',
-      titleEn: role === 'admin' ? 'Administrator' : 'Consultant Engineer',
-      email: `${nationalId}@dmc-consulting.sa`,
-      active: true
-    });
 
-    DMCStore.saveUsers(users);
-    DMCApp.showToast('تم إنشاء حساب المستخدم بنجاح', 'success');
+    if (id) {
+      // Update existing user
+      const userIndex = users.findIndex(u => u.id === id);
+      if (userIndex !== -1) {
+        users[userIndex].nationalId = nationalId;
+        users[userIndex].nameAr = nameAr;
+        users[userIndex].nameEn = nameEn;
+        users[userIndex].titleAr = title;
+        users[userIndex].titleEn = title;
+        users[userIndex].email = email;
+        users[userIndex].role = role;
+        users[userIndex].active = active;
+        if (password) {
+          users[userIndex].password = password;
+        }
+
+        DMCStore.saveUsers(users);
+
+        if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+          DMCApi.saveUser(users[userIndex]).catch(e => console.warn('SQLite user save error:', e));
+        }
+      }
+    } else {
+      // Create new user
+      const newUser = {
+        id: 'u_' + Date.now(),
+        nationalId: nationalId,
+        password: password || 'user123',
+        nameAr: nameAr,
+        nameEn: nameEn,
+        titleAr: title,
+        titleEn: title,
+        email: email || `${nationalId}@dmc-consulting.sa`,
+        role: role,
+        active: active
+      };
+
+      users.push(newUser);
+      DMCStore.saveUsers(users);
+
+      if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+        DMCApi.saveUser(newUser).catch(e => console.warn('SQLite user save error:', e));
+      }
+    }
+
+    this.closeUserModal();
+    this.renderUsers();
+
+    if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+      DMCApp.showToast('تم حفظ بيانات المستخدم بنجاح / User saved successfully', 'success');
+    }
   }
 };

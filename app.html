@@ -1047,6 +1047,83 @@
   </div>
 
   <!-- =====================================================================
+       MODAL 5: ADD / EDIT USER (SETTINGS SECTION)
+       ===================================================================== -->
+  <div id="modal-user-form" class="modal-overlay">
+    <div class="modal-container" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-title-icon"><i class="fa-solid fa-user-pen"></i></div>
+          <h2 class="modal-title" id="modal-user-title">تعديل بيانات المستخدم / Edit User</h2>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="DMCSettings.closeUserModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 1.5rem;">
+        <form id="user-edit-form" onsubmit="DMCSettings.saveUserForm(event)">
+          <input type="hidden" id="user-form-id">
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span>رقم الهوية الوطنية / National ID</span> <span class="required">*</span></label>
+              <input type="text" id="user-form-national-id" class="form-control" required placeholder="مثال: 1010101010">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span>كلمة المرور / Password</span></label>
+              <input type="password" id="user-form-password" class="form-control" placeholder="اترك فارغاً للإبقاء على الحالية">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span>الاسم الكامل (عربي)</span> <span class="required">*</span></label>
+              <input type="text" id="user-form-name-ar" class="form-control" required placeholder="مثال: أحمد محمد الزهراني">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span>الاسم الكامل (English)</span> <span class="required">*</span></label>
+              <input type="text" id="user-form-name-en" class="form-control" required placeholder="Example: Ahmed Mohammed">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span>المسمى الوظيفي / Job Title</span></label>
+              <input type="text" id="user-form-title" class="form-control" placeholder="مثال: مهندس استشاري أول">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span>البريد الإلكتروني / Email</span></label>
+              <input type="email" id="user-form-email" class="form-control" placeholder="user@dmc-consulting.sa">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span>نوع الصلاحية / Role</span> <span class="required">*</span></label>
+              <select id="user-form-role" class="form-select" required>
+                <option value="admin">مدير نظام كامل الصلاحيات (Admin)</option>
+                <option value="user">مستخدم / مهندس استشاري (Standard User)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span>حالة الحساب / Status</span></label>
+              <select id="user-form-active" class="form-select">
+                <option value="1">نشط / Active</option>
+                <option value="0">معطل / Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-footer" style="padding: 1.25rem 0 0 0; border-top: 1px solid var(--border-color); margin-top: 1.25rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+            <button type="button" class="btn btn-outline" onclick="DMCSettings.closeUserModal()">إلغاء / Cancel</button>
+            <button type="submit" class="btn btn-gold">
+              <i class="fa-solid fa-check"></i> حفظ التغييرات / Save User
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
        APPLICATION JAVASCRIPT BUNDLE
        ===================================================================== -->
   <script src="js/i18n.js"></script>

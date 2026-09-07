@@ -195,6 +195,22 @@ const DMCApi = {
     } catch (e) {
       return null;
     }
+  },
+
+  async saveUser(userData) {
+    if (!this.isConnected) return null;
+    try {
+      const res = await fetch(`${this.baseUrl}/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      console.warn('API saveUser error:', e);
+      return null;
+    }
   }
 };
 

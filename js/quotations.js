@@ -227,51 +227,83 @@ const DMCQuotations = {
 
   openFile(id) {
     const quotation = DMCStore.getQuotationById(id);
-    if (!quotation || !quotation.file) {
-      alert(t('no_records'));
+    if (!quotation) {
+      if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+        DMCApp.showToast(getLang() === 'ar' ? 'عرض السعر غير موجود' : 'Quotation not found', 'error');
+      } else {
+        alert('Quotation not found');
+      }
       return;
     }
 
-    const fileUrl = quotation.file.link || quotation.file.dataUrl;
+    // Check all possible file link properties
+    let fileUrl = (quotation.file && (quotation.file.fileLink || quotation.file.link || quotation.file.dataUrl)) ||
+                  quotation.fileLink ||
+                  quotation.fileDataUrl ||
+                  '';
+
+    if (!fileUrl && quotation.revisions && quotation.revisions.length > 0) {
+      const latestRev = quotation.revisions[quotation.revisions.length - 1];
+      fileUrl = latestRev.fileLink || latestRev.dataUrl || '';
+    }
+
+    fileUrl = (fileUrl || '').trim();
+
     if (!fileUrl) {
-      alert(t('no_records'));
+      const msgAr = 'لا يوجد رابط وثيقة مؤرشفة لهذا العرض بعد.\nهل ترغب في فتح نافذة تعديل العرض لإدخال رابط المستند (OneDrive / SharePoint)؟';
+      const msgEn = 'No archived document link for this quotation yet.\nWould you like to open the edit window to enter a document link (OneDrive / SharePoint)?';
+      if (confirm(getLang() === 'ar' ? msgAr : msgEn)) {
+        DMCForm.openEdit(id);
+      }
       return;
     }
 
-    // If it's an external or cloud link (OneDrive, SharePoint, cloud drive), open directly
+    // If it looks like a URL without protocol (e.g. sharepoint.com or onedrive.live.com)
+    if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://') && !fileUrl.startsWith('data:') && !fileUrl.startsWith('blob:')) {
+      if (fileUrl.includes('.') && !fileUrl.includes(' ')) {
+        fileUrl = 'https://' + fileUrl;
+      }
+    }
+
+    // Open Web / Cloud Link (OneDrive, SharePoint, Google Drive, Dropbox, external)
     if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://') || fileUrl.startsWith('//')) {
-      window.open(fileUrl, '_blank');
+      const win = window.open(fileUrl, '_blank', 'noopener,noreferrer');
+      if (!win) {
+        window.location.assign(fileUrl);
+      }
       return;
     }
 
-    // Open file in new tab or trigger download
-    const win = window.open();
-    if (win) {
-      win.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>${quotation.quotationNo} - DMC Official Document</title>
-          <style>
-            body { margin: 0; background: #07233B; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; color: #fff; }
-            .bar { background: #0B3D62; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #D4AF37; }
-            .btn { background: #D4AF37; color: #07233B; padding: 8px 16px; font-weight: bold; text-decoration: none; border-radius: 4px; }
-            iframe { flex: 1; border: none; width: 100%; height: 100%; }
-          </style>
-        </head>
-        <body>
-          <div class="bar">
-            <div>
-              <strong style="color: #D4AF37;">DMC دار مكة للاستشارات الهندسية</strong> | 
-              ${quotation.quotationNo} - ${quotation.titleEn || quotation.titleAr}
-            </div>
-            <a class="btn" href="${quotation.file.dataUrl}" download="${quotation.file.name}">تحميل الملف / Download</a>
-          </div>
-          <iframe src="${quotation.file.dataUrl}"></iframe>
-        </body>
-        </html>
-      `);
+    // If it's a data URL / Base64 PDF
+    if (fileUrl.startsWith('data:')) {
+      try {
+        const parts = fileUrl.split(';base64,');
+        const contentType = parts[0].split(':')[1] || 'application/pdf';
+        const raw = window.atob(parts[1]);
+        const rawLength = raw.length;
+        const uInt8Array = new Uint8Array(rawLength);
+        for (let i = 0; i < rawLength; ++i) {
+          uInt8Array[i] = raw.charCodeAt(i);
+        }
+        const blob = new Blob([uInt8Array], { type: contentType });
+        const blobUrl = URL.createObjectURL(blob);
+        const win = window.open(blobUrl, '_blank');
+        if (!win) {
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = (quotation.file && quotation.file.name) || `${quotation.quotationNo}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+        return;
+      } catch (e) {
+        console.error('Error opening base64 PDF:', e);
+      }
     }
+
+    // Generic fallback
+    window.open(fileUrl, '_blank');
   },
 
   openChangeStatus(id) {

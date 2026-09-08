@@ -47,62 +47,32 @@ const DMCStore = {
       const serverQuotations = await DMCApi.getQuotations();
       if (serverQuotations && Array.isArray(serverQuotations)) {
         localStorage.setItem(STORAGE_KEYS.QUOTATIONS, JSON.stringify(serverQuotations));
-        window.dispatchEvent(new CustomEvent('dmc-data-changed'));
       }
+
+      const serverUsers = await DMCApi.getUsers();
+      if (serverUsers && Array.isArray(serverUsers) && serverUsers.length > 0) {
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(serverUsers));
+      }
+
+      window.dispatchEvent(new CustomEvent('dmc-data-changed'));
     } catch (e) {
       console.warn('Backend sync failed:', e);
     }
   },
 
   seedDatabase() {
-    // 1. Users (Admin + Standard User)
+    // 1. Users (Official Administrator)
     const users = [
-      {
-        id: 'u_admin_1',
-        nationalId: '1010101010',
-        password: 'admin123',
-        nameAr: 'أحمد محمد الزهراني',
-        nameEn: 'Ahmed Mohammed Al-Zahrani',
-        role: 'admin',
-        titleAr: 'مدير عام النظام والتوثيق',
-        titleEn: 'System Administrator',
-        email: 'ahmed.m@dmc-consulting.sa',
-        active: true
-      },
-      {
-        id: 'u_user_1',
-        nationalId: '2020202020',
-        password: 'user123',
-        nameAr: 'م. خالد سعيد العتيبي',
-        nameEn: 'Eng. Khalid Al-Otaibi',
-        role: 'user',
-        titleAr: 'مهندس استشاري أول',
-        titleEn: 'Senior Consultant Engineer',
-        email: 'khalid.o@dmc-consulting.sa',
-        active: true
-      },
       {
         id: 'u_1',
         nationalId: '1234567890',
         password: 'admin123',
-        nameAr: 'أحمد محمد الزهراني',
-        nameEn: 'Ahmed Mohammed Al-Zahrani',
+        nameAr: 'أحمد عطية معوض',
+        nameEn: 'Ahmed Atiya Muawad',
         role: 'admin',
         titleAr: 'مدير عام النظام والتوثيق',
-        titleEn: 'System Administrator',
-        email: 'ahmed.m@dmc-consulting.sa',
-        active: true
-      },
-      {
-        id: 'u_2',
-        nationalId: '0987654321',
-        password: 'user123',
-        nameAr: 'م. خالد سعيد العتيبي',
-        nameEn: 'Eng. Khalid Al-Otaibi',
-        role: 'user',
-        titleAr: 'مهندس استشاري أول',
-        titleEn: 'Senior Consultant Engineer',
-        email: 'khalid.o@dmc-consulting.sa',
+        titleEn: 'System Administrator & CEO',
+        email: 'ceo@darmaaka.com',
         active: true
       }
     ];
@@ -659,68 +629,49 @@ const DMCStore = {
   },
 
   getUsers() {
-    const list = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+    const raw = localStorage.getItem(STORAGE_KEYS.USERS);
+    if (raw !== null) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        console.error('Failed to parse stored users:', e);
+      }
+    }
+
+    // Default seed users (only created if storage key is completely unset)
     const defaults = [
-      {
-        id: 'u_admin_1',
-        nationalId: '1010101010',
-        password: 'admin123',
-        nameAr: 'أحمد محمد الزهراني',
-        nameEn: 'Ahmed Mohammed Al-Zahrani',
-        role: 'admin',
-        titleAr: 'مدير عام النظام والتوثيق',
-        titleEn: 'System Administrator',
-        email: 'ahmed.m@dmc-consulting.sa',
-        active: true
-      },
-      {
-        id: 'u_user_1',
-        nationalId: '2020202020',
-        password: 'user123',
-        nameAr: 'م. خالد سعيد العتيبي',
-        nameEn: 'Eng. Khalid Al-Otaibi',
-        role: 'user',
-        titleAr: 'مهندس استشاري أول',
-        titleEn: 'Senior Consultant Engineer',
-        email: 'khalid.o@dmc-consulting.sa',
-        active: true
-      },
       {
         id: 'u_1',
         nationalId: '1234567890',
         password: 'admin123',
-        nameAr: 'أحمد محمد الزهراني',
-        nameEn: 'Ahmed Mohammed Al-Zahrani',
+        nameAr: 'أحمد عطية معوض',
+        nameEn: 'Ahmed Atiya Muawad',
         role: 'admin',
         titleAr: 'مدير عام النظام والتوثيق',
-        titleEn: 'System Administrator',
-        email: 'ahmed.m@dmc-consulting.sa',
-        active: true
-      },
-      {
-        id: 'u_2',
-        nationalId: '0987654321',
-        password: 'user123',
-        nameAr: 'م. خالد سعيد العتيبي',
-        nameEn: 'Eng. Khalid Al-Otaibi',
-        role: 'user',
-        titleAr: 'مهندس استشاري أول',
-        titleEn: 'Senior Consultant Engineer',
-        email: 'khalid.o@dmc-consulting.sa',
+        titleEn: 'System Administrator & CEO',
+        email: 'ceo@darmaaka.com',
         active: true
       }
     ];
 
-    defaults.forEach(def => {
-      if (!list.some(u => u.nationalId === def.nationalId)) {
-        list.push(def);
-      }
-    });
-
-    return list;
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(defaults));
+    return defaults;
   },
+
   saveUsers(list) {
     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(list));
+    window.dispatchEvent(new CustomEvent('dmc-data-changed'));
+  },
+
+  deleteUser(idOrNationalId) {
+    const list = this.getUsers();
+    const updated = list.filter(u =>
+      String(u.id) !== String(idOrNationalId) &&
+      String(u.nationalId) !== String(idOrNationalId)
+    );
+    this.saveUsers(updated);
+    return updated;
   },
 
   // Session Management
@@ -728,7 +679,22 @@ const DMCStore = {
     const sessionStr = sessionStorage.getItem(STORAGE_KEYS.SESSION) || localStorage.getItem(STORAGE_KEYS.SESSION);
     if (!sessionStr) return null;
     try {
-      return JSON.parse(sessionStr);
+      const parsed = JSON.parse(sessionStr);
+      if (parsed && parsed.user) {
+        return {
+          id: parsed.user.id,
+          nationalId: parsed.user.national_id || parsed.user.nationalId,
+          nameAr: parsed.user.name_ar || parsed.user.nameAr,
+          nameEn: parsed.user.name_en || parsed.user.nameEn,
+          role: parsed.user.role,
+          titleAr: parsed.user.title_ar || parsed.user.titleAr,
+          titleEn: parsed.user.title_en || parsed.user.titleEn,
+          email: parsed.user.email,
+          active: parsed.user.status === 'active' || parsed.user.active === 1 || parsed.user.active === true,
+          ...parsed.user
+        };
+      }
+      return parsed;
     } catch (e) {
       return null;
     }
@@ -790,3 +756,6 @@ const DMCStore = {
 
 // Initialize on script load
 DMCStore.init();
+
+window.DMCStore = DMCStore;
+

@@ -10,6 +10,12 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
+// Disable caching for frontend files during development
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  next();
+});
+
 // Serve static frontend files from workspace root
 const ROOT_DIR = path.resolve(__dirname, '..');
 app.use(express.static(ROOT_DIR));
@@ -625,13 +631,13 @@ app.post('/api/users', (req, res) => {
 app.delete('/api/users/:id', (req, res) => {
   try {
     const { id } = req.params;
-    const existing = db.prepare('SELECT name_en, name_ar FROM users WHERE id = ?').get(id);
+    const existing = db.prepare('SELECT id, name_en, name_ar FROM users WHERE id = ? OR national_id = ?').get(id, id);
     if (!existing) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    db.prepare('DELETE FROM users WHERE id = ?').run(id);
-    addAuditLog('User Deleted', 'Admin', id, `Deleted user ${existing.name_en || existing.name_ar}`);
+    db.prepare('DELETE FROM users WHERE id = ? OR national_id = ?').run(id, id);
+    addAuditLog('User Deleted', 'Admin', existing.id, `Deleted user ${existing.name_en || existing.name_ar}`);
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -13,17 +13,27 @@ const DMCSettings = {
     window.addEventListener('dmc-language-changed', () => this.renderAllTabs());
   },
 
+  switchTab(targetId) {
+    const tabButtons = document.querySelectorAll('.settings-tabs .settings-tab-btn');
+    tabButtons.forEach(b => {
+      if (b.getAttribute('data-tab') === targetId) {
+        b.classList.add('active');
+      } else {
+        b.classList.remove('active');
+      }
+    });
+
+    document.querySelectorAll('.settings-tab-content').forEach(p => p.classList.remove('active'));
+    const targetContent = document.getElementById(`tab-content-${targetId}`);
+    if (targetContent) targetContent.classList.add('active');
+  },
+
   bindTabs() {
-    const tabButtons = document.querySelectorAll('.settings-tab-btn');
+    const tabButtons = document.querySelectorAll('.settings-tabs .settings-tab-btn');
     tabButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        tabButtons.forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.settings-tab-content').forEach(p => p.classList.remove('active'));
-
-        btn.classList.add('active');
         const targetId = btn.getAttribute('data-tab');
-        const targetContent = document.getElementById(`tab-content-${targetId}`);
-        if (targetContent) targetContent.classList.add('active');
+        this.switchTab(targetId);
       });
     });
   },
@@ -75,14 +85,13 @@ const DMCSettings = {
       return;
     }
 
-    if (confirm(isAr ? `هل أنت متأكد من رغبتك في حذف ${branch.nameAr}؟` : `Are you sure you want to delete ${branch.nameEn}?`)) {
+    const msg = isAr ? `هل أنت متأكد من رغبتك في حذف ${branch.nameAr}؟` : `Are you sure you want to delete ${branch.nameEn}?`;
+    DMCApp.confirm(msg, () => {
       const updated = branches.filter(b => b.id !== id);
       DMCStore.saveBranches(updated);
       this.renderBranches();
-      if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
-        DMCApp.showToast(isAr ? 'تم حذف الفرع بنجاح' : 'Branch deleted successfully', 'success');
-      }
-    }
+      DMCApp.showToast(isAr ? 'تم حذف الفرع بنجاح' : 'Branch deleted successfully', 'success');
+    });
   },
 
   toggleBranch(id) {
@@ -150,14 +159,13 @@ const DMCSettings = {
       return;
     }
 
-    if (confirm(isAr ? `هل أنت متأكد من حذف ${target.nameAr}؟` : `Delete ${target.nameEn}?`)) {
+    const msg = isAr ? `هل أنت متأكد من حذف ${target.nameAr}؟` : `Delete quotation type "${target.nameEn}"?`;
+    DMCApp.confirm(msg, () => {
       const updated = types.filter(t => t.id !== id);
       DMCStore.saveQuotationTypes(updated);
       this.renderQuotationTypes();
-      if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
-        DMCApp.showToast(isAr ? 'تم حذف نوع العرض بنجاح' : 'Quotation type deleted', 'success');
-      }
-    }
+      DMCApp.showToast(isAr ? 'تم حذف نوع العرض بنجاح' : 'Quotation type deleted', 'success');
+    });
   },
 
   addQuotationType() {
@@ -211,14 +219,13 @@ const DMCSettings = {
       return;
     }
 
-    if (confirm(isAr ? `هل أنت متأكد من حذف ${target.nameAr}؟` : `Delete ${target.nameEn}?`)) {
+    const msg = isAr ? `هل أنت متأكد من حذف ${target.nameAr}؟` : `Delete project type "${target.nameEn}"?`;
+    DMCApp.confirm(msg, () => {
       const updated = types.filter(p => p.id !== id);
       DMCStore.saveProjectTypes(updated);
       this.renderProjectTypes();
-      if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
-        DMCApp.showToast(isAr ? 'تم حذف نوع المشروع بنجاح' : 'Project type deleted', 'success');
-      }
-    }
+      DMCApp.showToast(isAr ? 'تم حذف نوع المشروع بنجاح' : 'Project type deleted', 'success');
+    });
   },
 
   addProjectType() {
@@ -278,38 +285,71 @@ const DMCSettings = {
   deleteUser(id) {
     const isAr = typeof getLang === 'function' && getLang() === 'ar';
     const users = DMCStore.getUsers();
-    const user = users.find(u => u.id === id);
-    if (!user) return;
+    const user = users.find(u => String(u.id) === String(id) || String(u.nationalId) === String(id));
+    if (!user) {
+      console.warn('User not found to delete:', id);
+      return;
+    }
 
     const currentUser = DMCStore.getCurrentUser();
-    if (currentUser && currentUser.id === id) {
-      alert(isAr ? 'لا يمكنك حذف حسابك الحالي المسجل به الدخول.' : 'You cannot delete your currently logged-in account.');
-      return;
+    const isCurrentSession = currentUser && (
+      String(currentUser.id) === String(user.id) ||
+      String(currentUser.nationalId) === String(user.nationalId)
+    );
+
+    // Safeguard: Cannot delete the only remaining active admin
+    if (user.role === 'admin') {
+      const remainingAdmins = users.filter(u =>
+        u.role === 'admin' &&
+        Boolean(u.active) &&
+        String(u.id) !== String(user.id) &&
+        String(u.nationalId) !== String(user.nationalId)
+      );
+      if (remainingAdmins.length === 0) {
+        alert(isAr ? 'لا يمكن حذف مدير النظام الوحيد النشط في النظام.' : 'Cannot delete the only active system administrator.');
+        return;
+      }
     }
 
-    if (user.role === 'admin' && users.filter(u => u.role === 'admin' && u.active).length <= 1) {
-      alert(isAr ? 'لا يمكن حذف مدير النظام الوحيد النشط.' : 'Cannot delete the only active system administrator.');
-      return;
-    }
-
-    const confirmMsg = isAr 
+    let confirmMsg = isAr
       ? `هل أنت متأكد من رغبتك في حذف المستخدم "${user.nameAr || user.nameEn}" نهائياً؟`
       : `Are you sure you want to permanently delete user "${user.nameEn || user.nameAr}"?`;
 
-    if (confirm(confirmMsg)) {
-      const updatedUsers = users.filter(u => u.id !== id);
-      DMCStore.saveUsers(updatedUsers);
+    if (isCurrentSession) {
+      confirmMsg = isAr
+        ? `تحذير: هذا هو حسابك المسجل به الدخول حالياً ("${user.nameAr || user.nameEn}"). سيؤدي حذفه إلى تسجيل خروجك من النظام فوراً. هل ترغب في المتابعة والحذف؟`
+        : `Warning: This is your currently logged-in account ("${user.nameEn || user.nameAr}"). Deleting it will log you out immediately. Do you wish to proceed?`;
+    }
 
-      if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
-        DMCApi.deleteUser(id).catch(e => console.warn('SQLite delete user error:', e));
+    DMCApp.confirm(confirmMsg, () => {
+      // 1. Delete from local storage
+      DMCStore.deleteUser(user.id);
+      if (user.nationalId && user.nationalId !== user.id) {
+        DMCStore.deleteUser(user.nationalId);
       }
 
+      // 2. Delete from SQLite backend
+      if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+        DMCApi.deleteUser(user.id).catch(e => console.warn('SQLite delete user error:', e));
+        if (user.nationalId && user.nationalId !== user.id) {
+          DMCApi.deleteUser(user.nationalId).catch(() => {});
+        }
+      }
+
+      // 3. Close modal & re-render
       this.closeUserModal();
       this.renderUsers();
-      if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
-        DMCApp.showToast(isAr ? 'تم حذف المستخدم بنجاح' : 'User deleted successfully', 'success');
+      DMCApp.showToast(isAr ? 'تم حذف المستخدم بنجاح' : 'User deleted successfully', 'success');
+
+      // 4. If current session, cleanly logout
+      if (isCurrentSession) {
+        setTimeout(() => {
+          sessionStorage.removeItem('dmc_session');
+          localStorage.removeItem('dmc_session');
+          window.location.href = 'index.html';
+        }, 1200);
       }
-    }
+    });
   },
 
   toggleUser(id) {
@@ -470,3 +510,5 @@ const DMCSettings = {
     }
   }
 };
+
+window.DMCSettings = DMCSettings;

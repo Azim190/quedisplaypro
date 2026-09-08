@@ -220,6 +220,40 @@ const DMCApp = {
       toast.style.transform = 'translateY(-10px)';
       setTimeout(() => toast.remove(), 300);
     }, 3500);
+  },
+
+  // -----------------------------------------------------------------------
+  // Custom confirm dialog (replaces native confirm() which may be blocked)
+  // Usage: DMCApp.confirm('Are you sure?', () => { /* on yes */ });
+  // -----------------------------------------------------------------------
+  _confirmCallback: null,
+
+  confirm(message, onConfirm) {
+    const modal = document.getElementById('modal-confirm');
+    const msgEl = document.getElementById('modal-confirm-message');
+    if (!modal || !msgEl) {
+      // Fallback to native confirm if modal not in DOM
+      if (window.confirm(message)) onConfirm();
+      return;
+    }
+    msgEl.textContent = message;
+    this._confirmCallback = onConfirm;
+    modal.classList.add('active');
+  },
+
+  confirmOk() {
+    const modal = document.getElementById('modal-confirm');
+    if (modal) modal.classList.remove('active');
+    if (typeof this._confirmCallback === 'function') {
+      this._confirmCallback();
+    }
+    this._confirmCallback = null;
+  },
+
+  confirmCancel() {
+    const modal = document.getElementById('modal-confirm');
+    if (modal) modal.classList.remove('active');
+    this._confirmCallback = null;
   }
 };
 
@@ -227,3 +261,6 @@ const DMCApp = {
 document.addEventListener('DOMContentLoaded', () => {
   DMCApp.init();
 });
+
+window.DMCApp = DMCApp;
+

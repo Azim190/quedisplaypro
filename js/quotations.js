@@ -340,9 +340,12 @@ const DMCQuotations = {
       return;
     }
 
-    if (confirm(t('confirm_delete'))) {
+    DMCApp.confirm(t('confirm_delete'), () => {
       DMCStore.deleteQuotation(id);
       DMCApp.showToast(t('msg_deleted_success'), 'success');
-    }
+    });
   }
 };
+
+window.DMCQuotations = DMCQuotations;
+

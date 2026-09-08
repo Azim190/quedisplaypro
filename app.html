@@ -603,19 +603,19 @@
         <div class="table-section">
           <!-- Settings Navigation Tabs -->
           <div class="settings-tabs">
-            <button type="button" class="settings-tab-btn active" data-tab="branches">
+            <button type="button" id="settings-tab-btn-branches" class="settings-tab-btn active" data-tab="branches" onclick="DMCSettings.switchTab('branches')">
               <i class="fa-solid fa-building"></i>
               <span data-i18n="tab_branches">Branches (7)</span>
             </button>
-            <button type="button" class="settings-tab-btn" data-tab="types">
+            <button type="button" id="settings-tab-btn-types" class="settings-tab-btn" data-tab="types" onclick="DMCSettings.switchTab('types')">
               <i class="fa-solid fa-file-contract"></i>
               <span data-i18n="tab_types">Quotation Types</span>
             </button>
-            <button type="button" class="settings-tab-btn" data-tab="project-types">
+            <button type="button" id="settings-tab-btn-project-types" class="settings-tab-btn" data-tab="project-types" onclick="DMCSettings.switchTab('project-types')">
               <i class="fa-solid fa-city"></i>
               <span data-i18n="tab_project_types">Project Types</span>
             </button>
-            <button type="button" class="settings-tab-btn" data-tab="users">
+            <button type="button" id="settings-tab-btn-users" class="settings-tab-btn" data-tab="users" onclick="DMCSettings.switchTab('users')">
               <i class="fa-solid fa-users"></i>
               <span data-i18n="tab_users">Users & Roles</span>
             </button>
@@ -861,10 +861,10 @@
       <div class="modal-body">
         <!-- Tabs in Details -->
         <div class="d-flex gap-2" style="border-bottom: 1px solid var(--border-color); margin-bottom: 1.25rem;">
-          <button class="settings-tab-btn detail-tab-btn active" id="detail-tab-btn-overview" onclick="DMCDetails.switchTab('overview')">
+          <button class="detail-tab-btn active" id="detail-tab-btn-overview" onclick="DMCDetails.switchTab('overview')">
             <i class="fa-solid fa-circle-info"></i> <span data-i18n="tab_overview">نظرة عامة</span>
           </button>
-          <button class="settings-tab-btn detail-tab-btn" id="detail-tab-btn-revisions" onclick="DMCDetails.switchTab('revisions')">
+          <button class="detail-tab-btn" id="detail-tab-btn-revisions" onclick="DMCDetails.switchTab('revisions')">
             <i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="tab_revisions">سجل التعديلات والنسخ (Revisions)</span>
           </button>
         </div>
@@ -1124,6 +1124,28 @@
             </div>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       CUSTOM CONFIRM MODAL (replaces browser confirm() dialog)
+       ===================================================================== -->
+  <div id="modal-confirm" class="modal-overlay" style="z-index: 9999;">
+    <div class="modal-container" style="max-width: 440px; height: auto !important; max-height: 90vh; text-align: center; border-radius: 16px;">
+      <div class="modal-header" style="justify-content: center; border-bottom: none; padding-bottom: 0;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; width: 100%;">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(239,68,68,0.12); display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-triangle-exclamation" style="color: #EF4444; font-size: 1.5rem;"></i>
+          </div>
+          <p id="modal-confirm-message" style="font-size: 1rem; font-weight: 600; color: var(--text-primary); margin: 0; line-height: 1.6;"></p>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 1.25rem 1.5rem; display: flex; gap: 0.75rem; justify-content: center;">
+        <button type="button" id="btn-confirm-cancel" class="btn btn-outline" style="min-width: 110px;" onclick="DMCApp.confirmCancel()">إلغاء / Cancel</button>
+        <button type="button" id="btn-confirm-ok" class="btn" style="min-width: 110px; background: #EF4444; color: #fff; border: none;" onclick="DMCApp.confirmOk()">
+          <i class="fa-regular fa-trash-can"></i> حذف / Delete
+        </button>
       </div>
     </div>
   </div>

@@ -213,6 +213,18 @@ const DMCApi = {
     }
   },
 
+  async getUsers() {
+    if (!this.isConnected) return null;
+    try {
+      const res = await fetch(`${this.baseUrl}/users`);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      console.warn('API getUsers error:', e);
+      return null;
+    }
+  },
+
   async deleteUser(id) {
     if (!this.isConnected) return null;
     try {

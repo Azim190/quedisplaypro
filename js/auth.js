@@ -11,14 +11,29 @@ const DMCAuth = {
       window.location.href = 'index.html';
       return null;
     }
-    return user;
+    const users = DMCStore.getUsers();
+    const existing = users.find(u => String(u.id) === String(user.id) || String(u.nationalId) === String(user.nationalId));
+    if (!existing) {
+      sessionStorage.removeItem('dmc_session');
+      localStorage.removeItem('dmc_session');
+      window.location.href = 'index.html';
+      return null;
+    }
+    return existing;
   },
 
   // If already logged in and visiting index.html, redirect to app.html
   redirectIfAuthenticated() {
     const user = DMCStore.getCurrentUser();
     if (user) {
-      window.location.href = 'app.html';
+      const users = DMCStore.getUsers();
+      const existing = users.find(u => String(u.id) === String(user.id) || String(u.nationalId) === String(user.nationalId));
+      if (existing) {
+        window.location.href = 'app.html';
+      } else {
+        sessionStorage.removeItem('dmc_session');
+        localStorage.removeItem('dmc_session');
+      }
     }
   },
 
@@ -127,3 +142,6 @@ const DMCAuth = {
     }
   }
 };
+
+window.DMCAuth = DMCAuth;
+

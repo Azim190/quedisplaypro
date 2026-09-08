@@ -433,13 +433,20 @@ const DMCStore = {
       status: data.status || 'new',
       creationDate: data.creationDate || new Date().toISOString().slice(0, 10),
       validUntil: data.validUntil || new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10),
+      fileLink: data.fileLink || data.fileDataUrl || (data.file && (data.file.fileLink || data.file.link || data.file.dataUrl)) || '',
+      fileName: data.fileName || (data.file && data.file.name) || 'Quotation_Document.pdf',
+      fileSize: data.fileSize || (data.file && data.file.size) || '1.2 MB',
+      fileType: data.fileType || (data.file && data.file.type) || 'application/pdf',
+      fileDataUrl: data.fileDataUrl || data.fileLink || '',
       file: {
-        name: data.fileName || 'Quotation_Document.pdf',
-        size: data.fileSize || '1.2 MB',
-        type: data.fileType || 'application/pdf',
+        name: data.fileName || (data.file && data.file.name) || 'Quotation_Document.pdf',
+        size: data.fileSize || (data.file && data.file.size) || '1.2 MB',
+        type: data.fileType || (data.file && data.file.type) || 'application/pdf',
         uploadDate: new Date().toISOString(),
         uploadedBy: currentUser ? (currentUser.nameEn || currentUser.nameAr) : 'Ahmed Mohammed',
-        dataUrl: data.fileDataUrl || ''
+        fileLink: data.fileLink || data.fileDataUrl || (data.file && (data.file.fileLink || data.file.link)) || '',
+        dataUrl: data.fileDataUrl || data.fileLink || '',
+        platform: data.filePlatform || 'Microsoft OneDrive'
       },
       revisions: [],
       notes: data.notes || ''
@@ -472,6 +479,20 @@ const DMCStore = {
       const amount = Number(updatedFields.amount) || 0;
       updatedFields.vatAmount = Math.round(amount * 0.15);
       updatedFields.totalAmount = amount + updatedFields.vatAmount;
+    }
+
+    // Keep fileLink and file in sync
+    const currentFileLink = updatedFields.fileLink !== undefined 
+      ? updatedFields.fileLink 
+      : (updatedFields.file && updatedFields.file.fileLink) || oldItem.fileLink;
+
+    if (currentFileLink !== undefined) {
+      updatedFields.fileLink = currentFileLink;
+      updatedFields.file = {
+        ...(oldItem.file || {}),
+        ...(updatedFields.file || {}),
+        fileLink: currentFileLink
+      };
     }
 
     items[index] = { ...items[index], ...updatedFields };

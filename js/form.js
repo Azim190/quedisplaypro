@@ -219,16 +219,16 @@ const DMCForm = {
 
     // File Link and metadata
     const linkInput = document.getElementById('form-file-link');
-    if (linkInput && quotation.file) {
-      linkInput.value = quotation.file.link || quotation.file.dataUrl || '';
+    if (linkInput) {
+      linkInput.value = quotation.fileLink || (quotation.file && (quotation.file.fileLink || quotation.file.link || quotation.file.dataUrl)) || '';
     }
     const nameInput = document.getElementById('form-file-name');
-    if (nameInput && quotation.file) {
-      nameInput.value = quotation.file.name || '';
+    if (nameInput) {
+      nameInput.value = quotation.fileName || (quotation.file && quotation.file.name) || '';
     }
     const typeSelect = document.getElementById('form-file-type');
-    if (typeSelect && quotation.file && quotation.file.platform) {
-      typeSelect.value = quotation.file.platform;
+    if (typeSelect) {
+      typeSelect.value = (quotation.file && quotation.file.platform) || quotation.fileSize || 'Microsoft OneDrive';
     }
 
     this.calculateTotals();
@@ -301,7 +301,16 @@ const DMCForm = {
       fileType: 'link',
       fileDataUrl: fileLink,
       fileLink: fileLink,
-      filePlatform: filePlatform
+      filePlatform: filePlatform,
+      file: {
+        name: fileName,
+        size: filePlatform,
+        type: 'application/pdf',
+        fileLink: fileLink,
+        platform: filePlatform,
+        dataUrl: fileLink,
+        uploadDate: new Date().toISOString()
+      }
     };
 
     if (this.currentEditId) {

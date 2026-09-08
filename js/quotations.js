@@ -225,13 +225,13 @@ const DMCQuotations = {
     this.render();
   },
 
+  activeViewerQuotationId: null,
+
   openFile(id) {
     const quotation = DMCStore.getQuotationById(id);
     if (!quotation) {
       if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
         DMCApp.showToast(getLang() === 'ar' ? 'عرض السعر غير موجود' : 'Quotation not found', 'error');
-      } else {
-        alert('Quotation not found');
       }
       return;
     }
@@ -249,33 +249,29 @@ const DMCQuotations = {
 
     fileUrl = (fileUrl || '').trim();
 
-    if (!fileUrl) {
-      const msgAr = 'لا يوجد رابط وثيقة مؤرشفة لهذا العرض بعد.\nهل ترغب في فتح نافذة تعديل العرض لإدخال رابط المستند (OneDrive / SharePoint)؟';
-      const msgEn = 'No archived document link for this quotation yet.\nWould you like to open the edit window to enter a document link (OneDrive / SharePoint)?';
-      if (confirm(getLang() === 'ar' ? msgAr : msgEn)) {
-        DMCForm.openEdit(id);
-      }
-      return;
-    }
-
     // If it looks like a URL without protocol (e.g. sharepoint.com or onedrive.live.com)
-    if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://') && !fileUrl.startsWith('data:') && !fileUrl.startsWith('blob:')) {
+    if (fileUrl && !fileUrl.startsWith('http://') && !fileUrl.startsWith('https://') && !fileUrl.startsWith('data:') && !fileUrl.startsWith('blob:')) {
       if (fileUrl.includes('.') && !fileUrl.includes(' ')) {
         fileUrl = 'https://' + fileUrl;
       }
     }
 
     // Open Web / Cloud Link (OneDrive, SharePoint, Google Drive, Dropbox, external)
-    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://') || fileUrl.startsWith('//')) {
+    if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://') || fileUrl.startsWith('//'))) {
       const win = window.open(fileUrl, '_blank', 'noopener,noreferrer');
-      if (!win) {
-        window.location.assign(fileUrl);
+      if (win) {
+        if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+          DMCApp.showToast(getLang() === 'ar' ? 'تم فتح وثيقة العرض في نافذة جديدة' : 'Opening quotation document...', 'info');
+        }
+        return;
       }
+      // If popup blocker caught it, fall back to opening the in-app document viewer modal
+      this.openDocumentViewer(id);
       return;
     }
 
     // If it's a data URL / Base64 PDF
-    if (fileUrl.startsWith('data:')) {
+    if (fileUrl && fileUrl.startsWith('data:')) {
       try {
         const parts = fileUrl.split(';base64,');
         const contentType = parts[0].split(':')[1] || 'application/pdf';
@@ -302,8 +298,185 @@ const DMCQuotations = {
       }
     }
 
-    // Generic fallback
-    window.open(fileUrl, '_blank');
+    // Fallback: If no external cloud link is set (or popup was blocked or link is empty),
+    // open the official DMC Quotation Document / PDF Preview Modal!
+    this.openDocumentViewer(id);
+  },
+
+  openDocumentViewer(id) {
+    const quotation = DMCStore.getQuotationById(id);
+    if (!quotation) return;
+
+    this.activeViewerQuotationId = id;
+    const isAr = getLang() === 'ar';
+    const branches = DMCStore.getBranches();
+    const quotationTypes = DMCStore.getQuotationTypes();
+    const projectTypes = DMCStore.getProjectTypes();
+
+    const branch = branches.find(b => b.id === quotation.branchId);
+    const qType = quotationTypes.find(t => t.id === quotation.quotationTypeId);
+    const pType = projectTypes.find(p => p.id === quotation.projectTypeId);
+
+    const branchName = branch ? (isAr ? branch.nameAr : branch.nameEn) : 'دار مكة - الفرع الرئيسي';
+    const qTypeName = qType ? (isAr ? qType.nameAr : qType.nameEn) : (quotation.titleAr || quotation.titleEn);
+    const pTypeName = pType ? (isAr ? pType.nameAr : pType.nameEn) : '-';
+    const statusLabel = t(`status_${quotation.status}`) || quotation.status;
+
+    let fileUrl = quotation.fileLink || (quotation.file && (quotation.file.fileLink || quotation.file.link || quotation.file.dataUrl)) || '';
+
+    const modal = document.getElementById('modal-document-viewer');
+    if (!modal) return;
+
+    document.getElementById('doc-viewer-qno').textContent = quotation.quotationNo;
+    document.getElementById('doc-viewer-badge').innerHTML = `
+      <span class="badge badge-${quotation.status}"><span class="badge-dot"></span>${statusLabel}</span>
+    `;
+
+    document.getElementById('doc-sheet-qno').textContent = quotation.quotationNo;
+    document.getElementById('doc-sheet-branch').textContent = branchName;
+    document.getElementById('doc-sheet-date').textContent = quotation.creationDate;
+    document.getElementById('doc-sheet-valid').textContent = quotation.validUntil || '-';
+
+    document.getElementById('doc-sheet-client').textContent = isAr ? (quotation.clientNameAr || quotation.clientNameEn) : (quotation.clientNameEn || quotation.clientNameAr);
+    document.getElementById('doc-sheet-project').textContent = isAr ? (quotation.projectNameAr || quotation.projectNameEn) : (quotation.projectNameEn || quotation.projectNameAr);
+    document.getElementById('doc-sheet-title').textContent = isAr ? (quotation.titleAr || quotation.titleEn) : (quotation.titleEn || quotation.titleAr);
+    document.getElementById('doc-sheet-qtype').textContent = qTypeName;
+    document.getElementById('doc-sheet-ptype').textContent = pTypeName;
+
+    const currency = quotation.currency || 'SAR';
+    const amount = Number(quotation.amount) || 0;
+    const vatAmount = quotation.vatAmount !== undefined ? quotation.vatAmount : Math.round(amount * 0.15);
+    const totalAmount = quotation.totalAmount !== undefined ? quotation.totalAmount : (amount + vatAmount);
+
+    document.getElementById('doc-sheet-subtotal').textContent = `${amount.toLocaleString()} ${currency}`;
+    document.getElementById('doc-sheet-vat').textContent = `${vatAmount.toLocaleString()} ${currency}`;
+    document.getElementById('doc-sheet-total').textContent = `${totalAmount.toLocaleString()} ${currency}`;
+    document.getElementById('doc-sheet-item-desc').textContent = isAr ? (quotation.titleAr || quotation.projectNameAr) : (quotation.titleEn || quotation.projectNameEn);
+    document.getElementById('doc-sheet-item-amount').textContent = `${amount.toLocaleString()} ${currency}`;
+
+    const notesEl = document.getElementById('doc-sheet-notes');
+    if (notesEl) {
+      notesEl.textContent = quotation.notes || (isAr ? 'الأسعار شاملة تقديم المخططات والدراسات الهندسية المعتمدة وفق كود البناء السعودي.' : 'Prices include engineering studies and approved drawings according to Saudi Building Code.');
+    }
+
+    const cloudBtn = document.getElementById('doc-viewer-btn-cloud');
+    const cloudBanner = document.getElementById('doc-viewer-cloud-banner');
+
+    if (fileUrl && fileUrl.trim().length > 0) {
+      if (cloudBtn) {
+        cloudBtn.style.display = 'inline-flex';
+        cloudBtn.onclick = () => window.open(fileUrl, '_blank');
+      }
+      if (cloudBanner) {
+        cloudBanner.innerHTML = `
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.88rem; color: #10B981;">
+              <i class="fa-brands fa-microsoft" style="font-size: 1.2rem;"></i>
+              <span><strong>الوثيقة المؤرشفة سحابياً:</strong> ${quotation.fileName || (quotation.file && quotation.file.name) || 'مستند العرض (OneDrive)'}</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline" style="border-color: #10B981; color: #10B981; font-weight: 700;" onclick="window.open('${fileUrl}', '_blank')">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> فتح الرابط السحابي
+            </button>
+          </div>
+        `;
+      }
+    } else {
+      if (cloudBtn) {
+        cloudBtn.style.display = 'none';
+      }
+      if (cloudBanner) {
+        cloudBanner.innerHTML = `
+          <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: #D97706;">
+              <i class="fa-solid fa-circle-info" style="font-size: 1.1rem;"></i>
+              <span>لم يتم ربط رابط سحابي (OneDrive / SharePoint) لهذا العرض بعد. يمكنك طباعة/حفظ العرض كملف PDF، أو ربط المستند السحابي.</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline" style="border-color: #D97706; color: #D97706; font-weight: 700; white-space: nowrap;" onclick="DMCQuotations.promptEditFileLink('${quotation.id}')">
+              <i class="fa-solid fa-link"></i> ربط ملف سحابي
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    modal.classList.add('active');
+    document.body.classList.add('modal-open');
+    const modalBody = modal.querySelector('.modal-body');
+    if (modalBody) modalBody.scrollTop = 0;
+  },
+
+  closeDocumentViewer() {
+    const modal = document.getElementById('modal-document-viewer');
+    if (modal) modal.classList.remove('active');
+    document.body.classList.remove('modal-open');
+  },
+
+  printDocument(id) {
+    const targetId = id || this.activeViewerQuotationId;
+    if (!targetId) return;
+    const quotation = DMCStore.getQuotationById(targetId);
+    if (!quotation) return;
+
+    const sheetEl = document.getElementById('doc-viewer-sheet-container');
+    if (!sheetEl) {
+      window.print();
+      return;
+    }
+
+    const printWin = window.open('', '_blank', 'width=950,height=900');
+    if (!printWin) {
+      window.print();
+      return;
+    }
+
+    const sheetContent = sheetEl.innerHTML;
+    printWin.document.open();
+    printWin.document.write(`
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="utf-8">
+        <title>${quotation.quotationNo} - دار مكة للاستشارات الهندسية</title>
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <link rel="stylesheet" href="css/components.css">
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: 'Cairo', sans-serif; background: #fff; color: #1e293b; padding: 25px; }
+          .dmc-doc-sheet { max-width: 850px; margin: 0 auto; border: none !important; box-shadow: none !important; padding: 0 !important; }
+          @media print {
+            body { padding: 0; }
+            .dmc-doc-sheet { max-width: 100%; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="dmc-doc-sheet">
+          ${sheetContent}
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 300);
+          };
+        <\/script>
+      </body>
+      </html>
+    `);
+    printWin.document.close();
+  },
+
+  promptEditFileLink(id) {
+    this.closeDocumentViewer();
+    DMCForm.openEdit(id);
+    setTimeout(() => {
+      const linkInput = document.getElementById('form-file-link');
+      if (linkInput) {
+        linkInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        linkInput.focus();
+      }
+    }, 250);
   },
 
   openChangeStatus(id) {

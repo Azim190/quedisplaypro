@@ -365,6 +365,7 @@ app.put('/api/quotations/:id', (req, res) => {
         creation_date = COALESCE(?, creation_date),
         valid_until = COALESCE(?, valid_until),
         file_link = COALESCE(?, file_link),
+        file_name = COALESCE(?, file_name),
         notes = COALESCE(?, notes),
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
@@ -387,7 +388,8 @@ app.put('/api/quotations/:id', (req, res) => {
       data.status,
       data.creationDate,
       data.validUntil,
-      data.fileLink,
+      data.fileLink !== undefined ? data.fileLink : (data.file && (data.file.fileLink || data.file.link)) || null,
+      data.fileName !== undefined ? data.fileName : (data.file && data.file.name) || null,
       data.notes,
       id
     );

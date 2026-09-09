@@ -921,27 +921,34 @@
             <div class="detail-card d-flex flex-column justify-between">
               <div>
                 <div class="detail-card-title"><i class="fa-solid fa-box-archive" style="color: var(--brand-gold);"></i> الوثيقة المؤرشفة</div>
-                <div style="background: var(--bg-app); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; text-align: center; margin-bottom: 1rem;">
+                <div onclick="DMCDetails.openActiveFile()" style="background: var(--bg-app); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem 1rem; text-align: center; margin-bottom: 1rem; cursor: pointer; transition: all var(--transition-fast);" title="فتح الملف في الرابط السحابي / Open file in Drive link">
                   <i class="fa-regular fa-file-pdf" style="font-size: 3rem; color: #EF4444; margin-bottom: 0.5rem; display: block;"></i>
                   <div id="detail-file-name" style="font-weight: 700; font-size: 0.88rem; word-break: break-all;">Quotation.pdf</div>
-                  <div id="detail-file-size" style="font-size: 0.78rem; color: var(--text-muted);">1.8 MB</div>
+                  <div id="detail-file-size" style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.5rem;">1.8 MB</div>
+                  <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10B981; font-size: 0.8rem; font-weight: 700;">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> فتح في Drive
+                  </span>
                 </div>
 
                 <div class="detail-field" style="margin-bottom: 0.65rem;">
                   <span class="detail-field-label" data-i18n="lbl_uploaded_by">تمت الأرشفة بواسطة:</span>
                   <span class="detail-field-value" id="detail-uploaded-by">-</span>
                 </div>
-                <div class="detail-field">
+                <div class="detail-field" style="margin-bottom: 0.65rem;">
                   <span class="detail-field-label" data-i18n="lbl_upload_date">تاريخ وتوقيت الأرشفة:</span>
                   <span class="detail-field-value" id="detail-upload-date">-</span>
+                </div>
+                <div class="detail-field" style="margin-bottom: 0.65rem;">
+                  <span class="detail-field-label">رابط الملف السحابي (Drive):</span>
+                  <a id="detail-file-link-url" href="#" target="_blank" rel="noopener noreferrer" style="font-size: 0.8rem; color: var(--brand-primary); word-break: break-all; text-decoration: underline;">-</a>
                 </div>
               </div>
 
               <div>
                 <!-- Prominent OPEN QUOTATION button matching specification -->
                 <button type="button" class="btn-open-file-lg" onclick="DMCDetails.openActiveFile()">
-                  <i class="fa-regular fa-file-pdf"></i>
-                  <span data-i18n="btn_open_quotation">فتح وثيقة عرض السعر المؤرشفة</span>
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                  <span data-i18n="btn_open_quotation">فتح الملف في الرابط السحابي (Drive Link)</span>
                 </button>
 
                 <button type="button" class="btn btn-outline w-100" style="margin-top: 0.65rem;" onclick="DMCDetails.addRevisionForActive()">
@@ -1343,17 +1350,17 @@
   <!-- =====================================================================
        APPLICATION JAVASCRIPT BUNDLE
        ===================================================================== -->
-  <script src="js/i18n.js?v=2.5"></script>
-  <script src="js/api.js?v=2.5"></script>
-  <script src="js/store.js?v=2.5"></script>
-  <script src="js/auth.js?v=2.5"></script>
-  <script src="js/dashboard.js?v=2.5"></script>
-  <script src="js/quotations.js?v=2.5"></script>
-  <script src="js/form.js?v=2.5"></script>
-  <script src="js/details.js?v=2.5"></script>
-  <script src="js/revisions.js?v=2.5"></script>
-  <script src="js/settings.js?v=2.5"></script>
-  <script src="js/audit.js?v=2.5"></script>
-  <script src="js/app.js?v=2.5"></script>
+  <script src="js/i18n.js?v=2.6"></script>
+  <script src="js/api.js?v=2.6"></script>
+  <script src="js/store.js?v=2.6"></script>
+  <script src="js/auth.js?v=2.6"></script>
+  <script src="js/dashboard.js?v=2.6"></script>
+  <script src="js/quotations.js?v=2.6"></script>
+  <script src="js/form.js?v=2.6"></script>
+  <script src="js/details.js?v=2.6"></script>
+  <script src="js/revisions.js?v=2.6"></script>
+  <script src="js/settings.js?v=2.6"></script>
+  <script src="js/audit.js?v=2.6"></script>
+  <script src="js/app.js?v=2.6"></script>
 </body>
 </html>

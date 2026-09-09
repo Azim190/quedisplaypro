@@ -50,8 +50,21 @@ const DMCDetails = {
     // Archived File Details
     const fileNameEl = document.getElementById('detail-file-name');
     const fileSizeEl = document.getElementById('detail-file-size');
-    if (fileNameEl) fileNameEl.textContent = (quotation.file && quotation.file.name) || 'DMC_Official_Document.pdf';
-    if (fileSizeEl) fileSizeEl.textContent = (quotation.file && (quotation.file.platform || quotation.file.size)) || 'Microsoft OneDrive';
+    if (fileNameEl) fileNameEl.textContent = (quotation.file && quotation.file.name) || quotation.fileName || 'DMC_Official_Document.pdf';
+    if (fileSizeEl) fileSizeEl.textContent = (quotation.file && (quotation.file.platform || quotation.file.size)) || quotation.fileSize || 'Microsoft OneDrive';
+
+    const fileUrl = quotation.fileLink || (quotation.file && (quotation.file.fileLink || quotation.file.link)) || '';
+    const linkEl = document.getElementById('detail-file-link-url');
+    if (linkEl) {
+      if (fileUrl) {
+        linkEl.href = fileUrl;
+        linkEl.textContent = fileUrl;
+        linkEl.style.display = 'inline-block';
+      } else {
+        linkEl.href = 'javascript:void(0)';
+        linkEl.textContent = isAr ? 'لا يوجد رابط مسجل' : 'No link registered';
+      }
+    }
 
     // Render Revisions Timeline
     this.renderRevisions(quotation);

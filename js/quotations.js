@@ -236,9 +236,9 @@ const DMCQuotations = {
       return;
     }
 
-    // Check all possible file link properties
-    let fileUrl = (quotation.file && (quotation.file.fileLink || quotation.file.link || quotation.file.dataUrl)) ||
-                  quotation.fileLink ||
+    // Check all possible file link properties (Drive / OneDrive / SharePoint / Cloud link)
+    let fileUrl = quotation.fileLink ||
+                  (quotation.file && (quotation.file.fileLink || quotation.file.link || quotation.file.dataUrl)) ||
                   quotation.fileDataUrl ||
                   '';
 
@@ -249,24 +249,29 @@ const DMCQuotations = {
 
     fileUrl = (fileUrl || '').trim();
 
-    // If it looks like a URL without protocol (e.g. sharepoint.com or onedrive.live.com)
+    // If it looks like a URL without protocol (e.g. sharepoint.com, onedrive.live.com, drive.google.com)
     if (fileUrl && !fileUrl.startsWith('http://') && !fileUrl.startsWith('https://') && !fileUrl.startsWith('data:') && !fileUrl.startsWith('blob:')) {
       if (fileUrl.includes('.') && !fileUrl.includes(' ')) {
         fileUrl = 'https://' + fileUrl;
       }
     }
 
-    // Open Web / Cloud Link (OneDrive, SharePoint, Google Drive, Dropbox, external)
+    // Open directly in Drive link (OneDrive, Google Drive, SharePoint, cloud server link)
     if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://') || fileUrl.startsWith('//'))) {
       const win = window.open(fileUrl, '_blank', 'noopener,noreferrer');
-      if (win) {
-        if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
-          DMCApp.showToast(getLang() === 'ar' ? 'تم فتح وثيقة العرض في نافذة جديدة' : 'Opening quotation document...', 'info');
-        }
-        return;
+      if (!win) {
+        // Fallback: trigger anchor click if popup blocker caught window.open
+        const a = document.createElement('a');
+        a.href = fileUrl;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       }
-      // If popup blocker caught it, fall back to opening the in-app document viewer modal
-      this.openDocumentViewer(id);
+      if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+        DMCApp.showToast(getLang() === 'ar' ? 'جاري فتح الملف في الرابط السحابي (Drive)...' : 'Opening file in Drive link...', 'info');
+      }
       return;
     }
 
@@ -298,9 +303,21 @@ const DMCQuotations = {
       }
     }
 
-    // Fallback: If no external cloud link is set (or popup was blocked or link is empty),
-    // open the official DMC Quotation Document / PDF Preview Modal!
-    this.openDocumentViewer(id);
+    // If NO Drive link is registered yet:
+    // Inform user and directly open the edit modal to enter the Drive link!
+    const msgAr = 'لا يوجد رابط سحابي (Google Drive / OneDrive) مسجل لهذا العرض بعد. يرجى إدخال رابط المستند.';
+    const msgEn = 'No cloud Drive link registered for this quotation yet. Please enter the Drive document link.';
+    if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+      DMCApp.showToast(getLang() === 'ar' ? msgAr : msgEn, 'warning');
+    }
+    DMCForm.openEdit(id);
+    setTimeout(() => {
+      const linkInput = document.getElementById('form-file-link');
+      if (linkInput) {
+        linkInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        linkInput.focus();
+      }
+    }, 300);
   },
 
   openDocumentViewer(id) {

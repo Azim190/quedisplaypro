@@ -25,6 +25,18 @@ const DMCDashboard = {
       this.populateFilterDropdowns();
       this.renderAll();
     });
+
+    // Handle window resize dynamically to prevent horizontal blowout
+    window.addEventListener('resize', () => {
+      if (this._resizeTimeout) clearTimeout(this._resizeTimeout);
+      this._resizeTimeout = setTimeout(() => {
+        Object.values(this.charts).forEach(chart => {
+          if (chart && typeof chart.resize === 'function') {
+            try { chart.resize(); } catch(e) {}
+          }
+        });
+      }, 100);
+    });
   },
 
   populateFilterDropdowns() {

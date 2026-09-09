@@ -228,6 +228,11 @@ const DMCQuotations = {
   activeViewerQuotationId: null,
 
   openFile(id) {
+    // Prevent duplicate rapid triggering
+    if (this._isOpeningFile) return;
+    this._isOpeningFile = true;
+    setTimeout(() => { this._isOpeningFile = false; }, 800);
+
     const quotation = DMCStore.getQuotationById(id);
     if (!quotation) {
       if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
@@ -258,17 +263,11 @@ const DMCQuotations = {
 
     // Open directly in Drive link (OneDrive, Google Drive, SharePoint, cloud server link)
     if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://') || fileUrl.startsWith('//'))) {
-      const win = window.open(fileUrl, '_blank', 'noopener,noreferrer');
-      if (!win) {
-        // Fallback: trigger anchor click if popup blocker caught window.open
-        const a = document.createElement('a');
-        a.href = fileUrl;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+      const win = window.open(fileUrl, '_blank');
+      if (win) {
+        try { win.opener = null; } catch (e) {}
       }
+
       if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
         DMCApp.showToast(getLang() === 'ar' ? 'جاري فتح الملف في الرابط السحابي (Drive)...' : 'Opening file in Drive link...', 'info');
       }

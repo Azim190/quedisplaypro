@@ -12,6 +12,12 @@ const translations = {
     since_year: 'تأسست عام 1986',
 
     // Navigation
+    nav_section_main: 'القائمة الرئيسية',
+    nav_section_analytics: 'التحليلات والأرشيف',
+    nav_section_system: 'إدارة النظام',
+    nav_cloud_status: 'الأرشفة السحابية',
+    nav_cloud_connected: 'متصل وسحابي نشط',
+    nav_drive_direct: 'روابط Drive المباشرة',
     nav_dashboard: 'لوحة التحكم',
     nav_quotations: 'عروض الأسعار',
     nav_add_quotation: 'إضافة عرض سعر',
@@ -233,6 +239,12 @@ const translations = {
     since_year: 'Since 1986',
 
     // Navigation
+    nav_section_main: 'Main Menu',
+    nav_section_analytics: 'Analytics & Archive',
+    nav_section_system: 'System & Config',
+    nav_cloud_status: 'Cloud Archive',
+    nav_cloud_connected: 'Connected & Synced',
+    nav_drive_direct: 'Direct Drive Links',
     nav_dashboard: 'Dashboard',
     nav_quotations: 'Quotations',
     nav_add_quotation: 'Add Quotation',

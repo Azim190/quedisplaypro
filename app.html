@@ -14,9 +14,9 @@
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <!-- Styles -->
-  <link rel="stylesheet" href="css/main.css?v=2.8">
-  <link rel="stylesheet" href="css/dashboard.css?v=2.8">
-  <link rel="stylesheet" href="css/components.css?v=2.8">
+  <link rel="stylesheet" href="css/main.css?v=2.9">
+  <link rel="stylesheet" href="css/dashboard.css?v=2.9">
+  <link rel="stylesheet" href="css/components.css?v=2.9">
 </head>
 <body>
 
@@ -28,16 +28,28 @@
 
   <div class="app-layout">
     <!-- =====================================================================
-         SIDEBAR NAVIGATION
+         SIDEBAR NAVIGATION (Redesigned Full-Height Executive Architecture)
          ===================================================================== -->
     <aside id="sidebar" class="sidebar">
-      <div class="sidebar-header" style="justify-content: center; padding: 1.25rem 1rem;">
-        <div class="sidebar-brand" style="background: #FFFFFF; padding: 0.5rem 0.85rem; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); width: 100%; max-width: 225px; transition: transform var(--transition-fast);">
-          <img src="assets/logo.png" alt="DMC للاستشارات الهندسية" class="sidebar-logo" style="width: 100%; max-height: 48px; object-fit: contain; display: block;">
+      <!-- Header with Logo & Brand Subtitle -->
+      <div class="sidebar-header">
+        <div class="sidebar-brand-card">
+          <div class="sidebar-brand">
+            <img src="assets/logo.png" alt="DMC للاستشارات الهندسية" class="sidebar-logo">
+          </div>
+          <div class="sidebar-brand-meta">
+            <span class="sidebar-brand-tag" data-i18n="app_subtitle">نظام أرشفة وإدارة عروض الأسعار</span>
+          </div>
         </div>
       </div>
 
+      <!-- Navigation Menu with Categorized Sections -->
       <nav class="sidebar-nav">
+        <!-- Section: Main Menu -->
+        <div class="sidebar-section-label">
+          <span data-i18n="nav_section_main">القائمة الرئيسية</span>
+        </div>
+
         <!-- Dashboard Link -->
         <a href="#dashboard" class="nav-item active">
           <i class="fa-solid fa-house"></i>
@@ -52,10 +64,15 @@
         </a>
 
         <!-- Add Quotation Button -->
-        <a href="javascript:void(0)" class="nav-item btn-trigger-add-quotation">
-          <i class="fa-solid fa-square-plus" style="color: var(--brand-gold);"></i>
+        <a href="javascript:void(0)" class="nav-item nav-item-action btn-trigger-add-quotation">
+          <i class="fa-solid fa-circle-plus"></i>
           <span data-i18n="nav_add_quotation">Add Quotation</span>
         </a>
+
+        <!-- Section: Analytics & Archive -->
+        <div class="sidebar-section-label">
+          <span data-i18n="nav_section_analytics">التحليلات والأرشيف</span>
+        </div>
 
         <!-- Reports Link -->
         <a href="#reports" class="nav-item">
@@ -69,26 +86,54 @@
           <span data-i18n="nav_audit">Audit Log</span>
         </a>
 
+        <!-- Section: System & Settings -->
+        <div class="sidebar-section-label">
+          <span data-i18n="nav_section_system">إدارة النظام</span>
+        </div>
+
         <!-- Settings Link (Admin Only) -->
         <a href="#settings" class="nav-item" id="nav-item-settings">
           <i class="fa-solid fa-gear"></i>
           <span data-i18n="nav_settings">Settings</span>
         </a>
-      </nav>
 
-      <!-- Sidebar Footer (User Info & Logout) -->
-      <div class="sidebar-footer">
-        <div class="user-profile-widget">
-          <div class="user-avatar" id="sidebar-user-avatar">A</div>
-          <div class="user-info">
-            <span class="user-name" id="sidebar-user-name">Ahmed Mohammed</span>
-            <span class="user-role" id="sidebar-user-role">Administrator</span>
+        <!-- System & Cloud Status Card Widget -->
+        <div class="sidebar-cloud-widget">
+          <div class="cloud-widget-header">
+            <div class="cloud-widget-status">
+              <span class="pulse-indicator"></span>
+              <span class="status-text" data-i18n="nav_cloud_connected">متصل وسحابي نشط</span>
+            </div>
+            <span class="cloud-widget-badge">Drive</span>
+          </div>
+          <div class="cloud-widget-body">
+            <div class="cloud-widget-title" data-i18n="nav_cloud_status">الأرشفة السحابية</div>
+            <div class="cloud-widget-desc" data-i18n="nav_drive_direct">روابط Drive المباشرة • SQLite</div>
           </div>
         </div>
+      </nav>
+
+      <!-- Sidebar Footer (User Info, Logout & Copyright) -->
+      <div class="sidebar-footer">
+        <div class="user-profile-widget">
+          <div class="user-avatar-wrap">
+            <div class="user-avatar" id="sidebar-user-avatar">A</div>
+            <span class="user-status-dot"></span>
+          </div>
+          <div class="user-info">
+            <span class="user-name" id="sidebar-user-name">Ahmed Mohammed</span>
+            <span class="user-role-badge" id="sidebar-user-role">Administrator</span>
+          </div>
+        </div>
+
         <button type="button" class="sidebar-logout-btn btn-trigger-logout">
           <i class="fa-solid fa-arrow-right-from-bracket"></i>
           <span data-i18n="logout">Logout</span>
         </button>
+
+        <div class="sidebar-meta-footer">
+          <span>DMC v2.9 • دار مكة للاستشارات</span>
+        </div>
       </div>
     </aside>
 
@@ -1348,17 +1393,17 @@
   <!-- =====================================================================
        APPLICATION JAVASCRIPT BUNDLE
        ===================================================================== -->
-  <script src="js/i18n.js?v=2.8"></script>
-  <script src="js/api.js?v=2.8"></script>
-  <script src="js/store.js?v=2.8"></script>
-  <script src="js/auth.js?v=2.8"></script>
-  <script src="js/dashboard.js?v=2.8"></script>
-  <script src="js/quotations.js?v=2.8"></script>
-  <script src="js/form.js?v=2.8"></script>
-  <script src="js/details.js?v=2.8"></script>
-  <script src="js/revisions.js?v=2.8"></script>
-  <script src="js/settings.js?v=2.8"></script>
-  <script src="js/audit.js?v=2.8"></script>
-  <script src="js/app.js?v=2.8"></script>
+  <script src="js/i18n.js?v=2.9"></script>
+  <script src="js/api.js?v=2.9"></script>
+  <script src="js/store.js?v=2.9"></script>
+  <script src="js/auth.js?v=2.9"></script>
+  <script src="js/dashboard.js?v=2.9"></script>
+  <script src="js/quotations.js?v=2.9"></script>
+  <script src="js/form.js?v=2.9"></script>
+  <script src="js/details.js?v=2.9"></script>
+  <script src="js/revisions.js?v=2.9"></script>
+  <script src="js/settings.js?v=2.9"></script>
+  <script src="js/audit.js?v=2.9"></script>
+  <script src="js/app.js?v=2.9"></script>
 </body>
 </html>

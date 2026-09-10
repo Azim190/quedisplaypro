@@ -96,21 +96,6 @@
           <i class="fa-solid fa-gear"></i>
           <span data-i18n="nav_settings">Settings</span>
         </a>
-
-        <!-- System & Cloud Status Card Widget -->
-        <div class="sidebar-cloud-widget">
-          <div class="cloud-widget-header">
-            <div class="cloud-widget-status">
-              <span class="pulse-indicator"></span>
-              <span class="status-text" data-i18n="nav_cloud_connected">متصل وسحابي نشط</span>
-            </div>
-            <span class="cloud-widget-badge">Drive</span>
-          </div>
-          <div class="cloud-widget-body">
-            <div class="cloud-widget-title" data-i18n="nav_cloud_status">الأرشفة السحابية</div>
-            <div class="cloud-widget-desc" data-i18n="nav_drive_direct">روابط Drive المباشرة • SQLite</div>
-          </div>
-        </div>
       </nav>
 
       <!-- Sidebar Footer (User Info, Logout & Copyright) -->
@@ -1090,7 +1075,7 @@
        MODAL 5: ADD / EDIT USER (SETTINGS SECTION)
        ===================================================================== -->
   <div id="modal-user-form" class="modal-overlay">
-    <div class="modal-container" style="max-width: 600px;">
+    <div class="modal-container" style="max-width: 620px; height: auto !important; max-height: calc(100vh - 3rem);">
       <div class="modal-header">
         <div class="modal-title-wrap">
           <div class="modal-title-icon"><i class="fa-solid fa-user-pen"></i></div>
@@ -1098,8 +1083,9 @@
         </div>
         <button type="button" class="modal-close-btn" onclick="DMCSettings.closeUserModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="modal-body" style="padding: 1.5rem;">
-        <form id="user-edit-form" onsubmit="DMCSettings.saveUserForm(event)">
+
+      <form id="user-edit-form" onsubmit="DMCSettings.saveUserForm(event)" style="display: flex; flex-direction: column; min-height: 0; flex: 1; margin: 0;">
+        <div class="modal-body" style="padding: 1.5rem 1.75rem; flex: 1; overflow-y: auto;">
           <input type="hidden" id="user-form-id">
           
           <div class="form-row">
@@ -1151,20 +1137,20 @@
               </select>
             </div>
           </div>
+        </div>
 
-          <div class="modal-footer" style="padding: 1.25rem 0 0 0; border-top: 1px solid var(--border-color); margin-top: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
-            <button type="button" id="btn-delete-user-modal" class="btn btn-outline" style="display: none; color: #EF4444; border-color: rgba(239, 68, 68, 0.4);" onclick="DMCSettings.deleteCurrentUserFromModal()">
-              <i class="fa-regular fa-trash-can"></i> <span>حذف المستخدم / Delete</span>
+        <div class="modal-footer" style="padding: 1.15rem 1.75rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; background: var(--bg-surface-elevated); border-bottom-left-radius: var(--radius-xl); border-bottom-right-radius: var(--radius-xl); flex-shrink: 0;">
+          <button type="button" id="btn-delete-user-modal" class="btn btn-outline" style="display: none; color: #EF4444; border-color: rgba(239, 68, 68, 0.4);" onclick="DMCSettings.deleteCurrentUserFromModal()">
+            <i class="fa-regular fa-trash-can"></i> <span>حذف المستخدم / Delete</span>
+          </button>
+          <div style="display: flex; gap: 0.75rem; margin-inline-start: auto; align-items: center;">
+            <button type="button" class="btn btn-outline" onclick="DMCSettings.closeUserModal()" style="padding: 0.65rem 1.15rem; min-width: 110px;">إلغاء / Cancel</button>
+            <button type="submit" class="btn btn-gold" id="btn-save-user-modal" style="margin-inline: 0.5rem; margin-block: 0.35rem; min-width: 155px; padding: 0.65rem 1.25rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 2px 8px rgba(212, 175, 55, 0.25);">
+              <i class="fa-solid fa-check"></i> <span>حفظ التغييرات / Save User</span>
             </button>
-            <div style="display: flex; gap: 0.75rem; margin-inline-start: auto;">
-              <button type="button" class="btn btn-outline" onclick="DMCSettings.closeUserModal()">إلغاء / Cancel</button>
-              <button type="submit" class="btn btn-gold">
-                <i class="fa-solid fa-check"></i> حفظ التغييرات / Save User
-              </button>
-            </div>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   </div>
 

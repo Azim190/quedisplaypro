@@ -739,7 +739,8 @@
 /* Slim selects / inputs share styling */
 .filter-select-slim {
   width: 100%;
-  padding: 0.42rem 0.75rem 0.42rem 2rem;
+  padding: 0.42rem 0.75rem;
+  padding-inline-start: 2rem;   /* clears the leading icon in both LTR & RTL */
   font-size: 0.85rem;
   background: var(--bg-app);
   border: 1px solid var(--border-color);

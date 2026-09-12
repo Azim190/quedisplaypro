@@ -23,6 +23,18 @@ app.use(express.static(ROOT_DIR));
 // Ensure schema is initialized
 initSchema();
 
+// Auto-seed if database is freshly created / empty
+try {
+  const userCheck = db.prepare('SELECT count(*) as count FROM users').get();
+  if (!userCheck || userCheck.count === 0) {
+    console.log('Database empty, auto-seeding initial data...');
+    const { seed } = require('./seed');
+    seed();
+  }
+} catch (e) {
+  console.warn('Auto-seed check note:', e.message);
+}
+
 // -------------------------------------------------------------
 // Helpers
 // -------------------------------------------------------------

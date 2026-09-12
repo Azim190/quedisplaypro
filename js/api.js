@@ -5,10 +5,19 @@
  */
 
 const DMCApi = {
-  // Base API URL (relative if served from same origin, or fallback to localhost:3000)
-  baseUrl: (window.location.port === '3000' || window.location.pathname.startsWith('/api')) 
-    ? '/api' 
-    : 'http://localhost:3000/api',
+  // Base API URL (relative if served from same origin/Render, or fallback to localhost:3000)
+  baseUrl: (() => {
+    // If served in production (e.g. Render, HTTPS, or any non-localhost host)
+    if (window.location.protocol === 'https:' || (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')) {
+      return '/api';
+    }
+    // If served locally from Express on port 3000
+    if (window.location.port === '3000') {
+      return '/api';
+    }
+    // Fallback for separate local dev server (e.g. Live Server on 5500 or Python on 8080)
+    return 'http://localhost:3000/api';
+  })(),
 
   isConnected: false,
   isChecking: false,

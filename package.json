@@ -10,6 +10,9 @@
     "clear": "node server/clear.js",
     "dev": "node server/server.js"
   },
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "keywords": [
     "quotations",
     "dmc",

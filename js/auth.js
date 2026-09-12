@@ -88,8 +88,14 @@ const DMCAuth = {
     if (form) {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const nationalId = nationalIdInput.value.trim();
-        const password = passwordInput.value.trim();
+        let nationalId = nationalIdInput.value.trim();
+        let password = passwordInput.value.trim();
+
+        if (typeof DMCStore !== 'undefined' && typeof DMCStore.normalizeDigits === 'function') {
+          nationalId = DMCStore.normalizeDigits(nationalId);
+          password = DMCStore.normalizeDigits(password);
+        }
+
         const remember = rememberMeCheckbox ? rememberMeCheckbox.checked : false;
 
         let user = DMCStore.login(nationalId, password, remember);

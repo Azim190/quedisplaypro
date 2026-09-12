@@ -602,52 +602,192 @@
 }
 
 /* ==========================================================================
-   Filter Bar (Matching Mockup: Branch, Status, Date, Type, Value Sort, Search)
+   Filter Bar v2 — Redesigned (labeled columns, custom date range, badge)
    ========================================================================== */
-.filter-bar {
-  background-color: var(--bg-surface);
+.filter-bar-v2 {
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: 1rem 1.25rem;
+  padding: 0.75rem 1.25rem 1rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 0; /* gap handled by page-content */
+}
+
+/* Header row: "Filters" title + active badge + clear button */
+.filter-bar-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+
+.filter-bar-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.2px;
+}
+
+.filter-bar-title > i {
+  font-size: 0.78rem;
+  color: var(--brand-gold);
+}
+
+/* Active-filter count pill */
+.filter-active-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: var(--brand-gold);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Clear Filters button */
+.filter-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: none;
+  color: var(--status-closed);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius-sm);
+  transition: opacity var(--transition-fast), background var(--transition-fast);
+}
+
+.filter-clear-btn:hover {
+  opacity: 0.8;
+  background: var(--status-closed-bg);
+}
+
+/* Fields row: horizontal flex, each group is a labeled column */
+.filter-fields-row {
+  display: flex;
+  align-items: flex-end;
   gap: 0.85rem;
   flex-wrap: wrap;
-  box-shadow: var(--shadow-sm);
 }
 
-.filter-select-wrap {
+/* Each labeled column */
+.filter-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
   flex: 1;
-  min-width: 140px;
+  min-width: 120px;
 }
 
-.filter-select-wrap .form-select {
-  padding: 0.5rem 0.85rem;
-  font-size: 0.88rem;
-  background-color: var(--bg-app);
-  border-color: var(--border-color);
+/* Search field gets slightly more space */
+.filter-field-group--search {
+  flex: 1.4;
+  min-width: 160px;
 }
 
-.filter-search-wrap {
-  flex: 1.2;
-  min-width: 170px;
+/* Custom date fields — compact, fixed width */
+.filter-custom-date {
+  flex: 0 1 150px;
+  min-width: 130px;
+  animation: filter-slide-in 0.2s ease;
 }
 
-.btn-reset-filters {
-  background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
+@keyframes filter-slide-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Small all-caps label above each control */
+.filter-field-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--brand-primary);
+  text-transform: uppercase;
+  white-space: nowrap;
+  margin: 0;
+  opacity: 0.85;
+}
+
+/* Control wrapper (icon + input/select) */
+.filter-field-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filter-field-icon {
+  position: absolute;
+  inset-inline-start: 0.65rem;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Slim selects / inputs share styling */
+.filter-select-slim {
+  width: 100%;
+  padding: 0.42rem 0.75rem 0.42rem 2rem;
   font-size: 0.85rem;
-  padding: 0.5rem 0.85rem;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
+  color: var(--text-main);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  appearance: auto;
 }
 
-.btn-reset-filters:hover {
-  border-color: var(--status-closed);
-  color: var(--status-closed);
+.filter-select-slim:focus {
+  outline: none;
+  border-color: var(--brand-gold);
+  box-shadow: 0 0 0 2px var(--brand-gold-glow);
 }
+
+/* Date-range select — highlight when custom is chosen */
+.filter-field-control--date select.filter-select-slim[data-custom="true"] {
+  border-color: var(--brand-gold);
+  color: var(--brand-primary);
+  font-weight: 700;
+}
+
+/* Native date inputs styling */
+.filter-date-input {
+  width: 100%;
+  padding: 0.42rem 0.6rem;
+  font-size: 0.85rem;
+  background: var(--bg-app);
+  border: 1px solid var(--brand-gold);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  transition: box-shadow var(--transition-fast);
+}
+
+.filter-date-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--brand-gold-glow);
+}
+
+/* Dark-mode tweaks */
+[data-theme="dark"] .filter-select-slim,
+[data-theme="dark"] .filter-date-input {
+  background: var(--bg-app);
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+
 
 /* ==========================================================================
    Charts Grid (Rows matching Mockup)

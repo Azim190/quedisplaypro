@@ -359,20 +359,34 @@ const DMCStore = {
       const currentYear = today.getFullYear();
       const currentMonth = today.getMonth();
 
-      items = items.filter(q => {
-        const qDate = new Date(q.creationDate);
-        if (filterOptions.dateFilter === 'today') {
-          return qDate.toDateString() === today.toDateString();
-        } else if (filterOptions.dateFilter === 'this_week') {
-          const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-          return qDate >= firstDayOfWeek;
-        } else if (filterOptions.dateFilter === 'this_month') {
-          return qDate.getFullYear() === currentYear && qDate.getMonth() === currentMonth;
-        } else if (filterOptions.dateFilter === 'this_year') {
-          return qDate.getFullYear() === currentYear;
-        }
-        return true;
-      });
+      if (filterOptions.dateFilter === 'custom_range') {
+        // Custom date range: filter by dateFrom and/or dateTo
+        const fromDate = filterOptions.dateFrom ? new Date(filterOptions.dateFrom) : null;
+        const toDate   = filterOptions.dateTo   ? new Date(filterOptions.dateTo)   : null;
+        if (toDate) toDate.setHours(23, 59, 59, 999); // inclusive end of day
+
+        items = items.filter(q => {
+          const qDate = new Date(q.creationDate);
+          if (fromDate && qDate < fromDate) return false;
+          if (toDate   && qDate > toDate)   return false;
+          return true;
+        });
+      } else {
+        items = items.filter(q => {
+          const qDate = new Date(q.creationDate);
+          if (filterOptions.dateFilter === 'today') {
+            return qDate.toDateString() === today.toDateString();
+          } else if (filterOptions.dateFilter === 'this_week') {
+            const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+            return qDate >= firstDayOfWeek;
+          } else if (filterOptions.dateFilter === 'this_month') {
+            return qDate.getFullYear() === currentYear && qDate.getMonth() === currentMonth;
+          } else if (filterOptions.dateFilter === 'this_year') {
+            return qDate.getFullYear() === currentYear;
+          }
+          return true;
+        });
+      }
     }
 
     // 5. Global Search (No., Client, Project, Title)

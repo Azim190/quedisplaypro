@@ -11,6 +11,8 @@ const DMCDashboard = {
     status: 'all',
     type: 'all',
     dateFilter: 'all',
+    dateFrom: '',
+    dateTo: '',
     sort: 'newest',
     query: ''
   },
@@ -73,20 +75,55 @@ const DMCDashboard = {
     }
   },
 
+  /** Show/hide From–To date pickers and mark the date select visually */
+  _toggleCustomDatePickers(show) {
+    const fromWrap = document.getElementById('filter-from-wrap');
+    const toWrap   = document.getElementById('filter-to-wrap');
+    const dateSel  = document.getElementById('filter-date');
+    if (fromWrap) fromWrap.style.display = show ? '' : 'none';
+    if (toWrap)   toWrap.style.display   = show ? '' : 'none';
+    if (dateSel)  dateSel.setAttribute('data-custom', show ? 'true' : 'false');
+  },
+
+  /** Count how many filters are non-default and update the badge + clear button */
+  _updateActiveBadge() {
+    const f = this.currentFilters;
+    let count = 0;
+    if (f.branch !== 'all') count++;
+    if (f.status !== 'all') count++;
+    if (f.type !== 'all')   count++;
+    if (f.dateFilter !== 'all') count++;
+    if (f.query && f.query.trim()) count++;
+
+    const badge   = document.getElementById('filter-active-count');
+    const clearBtn = document.getElementById('btn-reset-filters');
+
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = count > 0 ? '' : 'none';
+    }
+    if (clearBtn) {
+      clearBtn.style.display = count > 0 ? '' : 'none';
+    }
+  },
+
   bindFilterEvents() {
     this.populateFilterDropdowns();
 
-    const branchSelect = document.getElementById('filter-branch');
-    const statusSelect = document.getElementById('filter-status');
-    const typeSelect = document.getElementById('filter-type');
-    const dateSelect = document.getElementById('filter-date');
-    const sortSelect = document.getElementById('filter-sort');
-    const searchInput = document.getElementById('filter-search');
-    const resetBtn = document.getElementById('btn-reset-filters');
+    const branchSelect  = document.getElementById('filter-branch');
+    const statusSelect  = document.getElementById('filter-status');
+    const typeSelect    = document.getElementById('filter-type');
+    const dateSelect    = document.getElementById('filter-date');
+    const dateFromInput = document.getElementById('filter-date-from');
+    const dateToInput   = document.getElementById('filter-date-to');
+    const sortSelect    = document.getElementById('filter-sort');
+    const searchInput   = document.getElementById('filter-search');
+    const resetBtn      = document.getElementById('btn-reset-filters');
 
     if (branchSelect) {
       branchSelect.addEventListener('change', (e) => {
         this.currentFilters.branch = e.target.value;
+        this._updateActiveBadge();
         this.renderAll();
       });
     }
@@ -94,6 +131,7 @@ const DMCDashboard = {
     if (statusSelect) {
       statusSelect.addEventListener('change', (e) => {
         this.currentFilters.status = e.target.value;
+        this._updateActiveBadge();
         this.renderAll();
       });
     }
@@ -101,6 +139,7 @@ const DMCDashboard = {
     if (typeSelect) {
       typeSelect.addEventListener('change', (e) => {
         this.currentFilters.type = e.target.value;
+        this._updateActiveBadge();
         this.renderAll();
       });
     }
@@ -108,6 +147,29 @@ const DMCDashboard = {
     if (dateSelect) {
       dateSelect.addEventListener('change', (e) => {
         this.currentFilters.dateFilter = e.target.value;
+        const isCustom = e.target.value === 'custom_range';
+        this._toggleCustomDatePickers(isCustom);
+        if (!isCustom) {
+          this.currentFilters.dateFrom = '';
+          this.currentFilters.dateTo   = '';
+          if (dateFromInput) dateFromInput.value = '';
+          if (dateToInput)   dateToInput.value   = '';
+        }
+        this._updateActiveBadge();
+        this.renderAll();
+      });
+    }
+
+    if (dateFromInput) {
+      dateFromInput.addEventListener('change', (e) => {
+        this.currentFilters.dateFrom = e.target.value;
+        this.renderAll();
+      });
+    }
+
+    if (dateToInput) {
+      dateToInput.addEventListener('change', (e) => {
+        this.currentFilters.dateTo = e.target.value;
         this.renderAll();
       });
     }
@@ -125,6 +187,7 @@ const DMCDashboard = {
         clearTimeout(timeout);
         timeout = setTimeout(() => {
           this.currentFilters.query = e.target.value;
+          this._updateActiveBadge();
           this.renderAll();
         }, 200);
       });
@@ -133,19 +196,20 @@ const DMCDashboard = {
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
         this.currentFilters = {
-          branch: 'all',
-          status: 'all',
-          type: 'all',
-          dateFilter: 'all',
-          sort: 'newest',
-          query: ''
+          branch: 'all', status: 'all', type: 'all',
+          dateFilter: 'all', dateFrom: '', dateTo: '',
+          sort: 'newest', query: ''
         };
-        if (branchSelect) branchSelect.value = 'all';
-        if (statusSelect) statusSelect.value = 'all';
-        if (typeSelect) typeSelect.value = 'all';
-        if (dateSelect) dateSelect.value = 'all';
-        if (sortSelect) sortSelect.value = 'newest';
-        if (searchInput) searchInput.value = '';
+        if (branchSelect)  branchSelect.value  = 'all';
+        if (statusSelect)  statusSelect.value  = 'all';
+        if (typeSelect)    typeSelect.value    = 'all';
+        if (dateSelect)    dateSelect.value    = 'all';
+        if (sortSelect)    sortSelect.value    = 'newest';
+        if (searchInput)   searchInput.value   = '';
+        if (dateFromInput) dateFromInput.value  = '';
+        if (dateToInput)   dateToInput.value    = '';
+        this._toggleCustomDatePickers(false);
+        this._updateActiveBadge();
         this.renderAll();
       });
     }

@@ -286,64 +286,114 @@
         </section>
 
         <!-- ===================================================================
-             FILTER BAR (BRANCH, STATUS, DATE, TYPE, VALUE SORT, SEARCH)
+             FILTER BAR — Redesigned (Branch, Status, Type, Date Range + Custom, Sort)
              =================================================================== -->
-        <section class="filter-bar">
-          <!-- Branch Filter -->
-          <div class="filter-select-wrap">
-            <select id="filter-branch" class="form-select">
-              <option value="all">All Branches</option>
-            </select>
-          </div>
-
-          <!-- Status Filter -->
-          <div class="filter-select-wrap">
-            <select id="filter-status" class="form-select">
-              <option value="all">All Statuses</option>
-            </select>
-          </div>
-
-          <!-- Date Filter -->
-          <div class="filter-select-wrap">
-            <select id="filter-date" class="form-select">
-              <option value="all" data-i18n="filter_date_all">All Periods</option>
-              <option value="today" data-i18n="filter_date_today">Today</option>
-              <option value="this_week" data-i18n="filter_date_week">This Week</option>
-              <option value="this_month" data-i18n="filter_date_month">This Month</option>
-              <option value="this_year" data-i18n="filter_date_year">This Year</option>
-            </select>
-          </div>
-
-          <!-- Quotation Type Filter -->
-          <div class="filter-select-wrap">
-            <select id="filter-type" class="form-select">
-              <option value="all">All Types</option>
-            </select>
-          </div>
-
-          <!-- Value Sort -->
-          <div class="filter-select-wrap">
-            <select id="filter-sort" class="form-select">
-              <option value="newest" data-i18n="filter_sort_newest">Newest Date</option>
-              <option value="highest" data-i18n="filter_sort_highest">Highest Value</option>
-              <option value="lowest" data-i18n="filter_sort_lowest">Lowest Value</option>
-              <option value="oldest" data-i18n="filter_sort_oldest">Oldest Date</option>
-            </select>
-          </div>
-
-          <!-- Filter Search -->
-          <div class="filter-search-wrap">
-            <div class="input-with-icon">
-              <i class="fa-solid fa-magnifying-glass input-icon"></i>
-              <input type="text" id="filter-search" class="form-control" placeholder="Search..." data-i18n-placeholder="search_placeholder">
+        <section class="filter-bar-v2" id="filter-bar">
+          <!-- Bar Header Row -->
+          <div class="filter-bar-header">
+            <div class="filter-bar-title">
+              <i class="fa-solid fa-filter"></i>
+              <span data-i18n="filters_label">Filters</span>
+              <span class="filter-active-badge" id="filter-active-count" style="display:none;">0</span>
             </div>
+            <button type="button" id="btn-reset-filters" class="filter-clear-btn" style="display:none;">
+              <i class="fa-solid fa-xmark"></i>
+              <span data-i18n="btn_reset_filters">Clear Filters</span>
+            </button>
           </div>
 
-          <!-- Reset Button -->
-          <button type="button" id="btn-reset-filters" class="btn-reset-filters">
-            <i class="fa-solid fa-arrow-rotate-left"></i>
-            <span data-i18n="btn_reset_filters">Reset Filters</span>
-          </button>
+          <!-- Filter Fields Row -->
+          <div class="filter-fields-row">
+
+            <!-- Branch -->
+            <div class="filter-field-group">
+              <label class="filter-field-label" data-i18n="col_branch">Branch</label>
+              <div class="filter-field-control">
+                <i class="fa-solid fa-code-branch filter-field-icon"></i>
+                <select id="filter-branch" class="form-select filter-select-slim">
+                  <option value="all" data-i18n="filter_all_branches">All Branches</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div class="filter-field-group">
+              <label class="filter-field-label" data-i18n="col_status">Status</label>
+              <div class="filter-field-control">
+                <i class="fa-solid fa-circle-half-stroke filter-field-icon"></i>
+                <select id="filter-status" class="form-select filter-select-slim">
+                  <option value="all" data-i18n="filter_all_statuses">All Statuses</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Quotation Type -->
+            <div class="filter-field-group">
+              <label class="filter-field-label" data-i18n="col_type">Quotation Type</label>
+              <div class="filter-field-control">
+                <i class="fa-solid fa-layer-group filter-field-icon"></i>
+                <select id="filter-type" class="form-select filter-select-slim">
+                  <option value="all" data-i18n="filter_all_types">All Types</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Date Range -->
+            <div class="filter-field-group">
+              <label class="filter-field-label" data-i18n="filter_date_range">Date Range</label>
+              <div class="filter-field-control filter-field-control--date">
+                <i class="fa-regular fa-calendar filter-field-icon"></i>
+                <select id="filter-date" class="form-select filter-select-slim">
+                  <option value="all" data-i18n="filter_date_all">All Dates</option>
+                  <option value="today" data-i18n="filter_date_today">Today</option>
+                  <option value="this_week" data-i18n="filter_date_week">This Week</option>
+                  <option value="this_month" data-i18n="filter_date_month">This Month</option>
+                  <option value="this_year" data-i18n="filter_date_year">This Year</option>
+                  <option value="custom_range" data-i18n="filter_date_custom">Custom Range</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- From Date (only shown for custom range) -->
+            <div class="filter-field-group filter-custom-date" id="filter-from-wrap" style="display:none;">
+              <label class="filter-field-label" data-i18n="filter_from">From</label>
+              <div class="filter-field-control">
+                <input type="date" id="filter-date-from" class="form-control filter-date-input">
+              </div>
+            </div>
+
+            <!-- To Date (only shown for custom range) -->
+            <div class="filter-field-group filter-custom-date" id="filter-to-wrap" style="display:none;">
+              <label class="filter-field-label" data-i18n="filter_to">To</label>
+              <div class="filter-field-control">
+                <input type="date" id="filter-date-to" class="form-control filter-date-input">
+              </div>
+            </div>
+
+            <!-- Sort By -->
+            <div class="filter-field-group">
+              <label class="filter-field-label" data-i18n="filter_sort_label">Sort By</label>
+              <div class="filter-field-control">
+                <i class="fa-solid fa-arrow-up-wide-short filter-field-icon"></i>
+                <select id="filter-sort" class="form-select filter-select-slim">
+                  <option value="newest" data-i18n="filter_sort_newest">Newest Date</option>
+                  <option value="highest" data-i18n="filter_sort_highest">Highest Value</option>
+                  <option value="lowest" data-i18n="filter_sort_lowest">Lowest Value</option>
+                  <option value="oldest" data-i18n="filter_sort_oldest">Oldest Date</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Search -->
+            <div class="filter-field-group filter-field-group--search">
+              <label class="filter-field-label" data-i18n="search_label">Search</label>
+              <div class="filter-field-control">
+                <i class="fa-solid fa-magnifying-glass filter-field-icon"></i>
+                <input type="text" id="filter-search" class="form-control filter-select-slim" placeholder="Search..." data-i18n-placeholder="search_placeholder">
+              </div>
+            </div>
+
+          </div>
         </section>
 
         <!-- ===================================================================

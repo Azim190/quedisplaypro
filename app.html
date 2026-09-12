@@ -552,37 +552,103 @@
       </section>
 
       <!-- ===================================================================
-           VIEW 3: REPORTS & ANALYTICS
+           VIEW 3: REPORTS & ANALYTICS (Redesigned)
            =================================================================== -->
       <section id="view-reports" class="page-view page-content" style="display: none;">
-        <div class="page-header">
-          <h1 class="page-title" data-i18n="nav_reports">Reports & Analytics</h1>
+        <div class="page-header reports-page-header">
+          <h1 class="page-title" data-i18n="nav_reports">Reports &amp; Analytics</h1>
+          <div class="reports-header-actions">
+            <select id="rpt-filter-branch" class="form-select rpt-filter-select">
+              <option value="all" data-i18n="filter_all_branches">All Branches</option>
+            </select>
+            <select id="rpt-filter-date" class="form-select rpt-filter-select">
+              <option value="all" data-i18n="filter_date_all">All Periods</option>
+              <option value="this_month" data-i18n="filter_date_month">This Month</option>
+              <option value="this_year" data-i18n="filter_date_year">This Year</option>
+            </select>
+          </div>
         </div>
 
-        <div class="charts-grid-row-1">
-          <div class="chart-card">
-            <div class="chart-header">
-              <h2 class="chart-title">حجم العروض حسب الفروع (القيمة المالية)</h2>
+        <!-- KPI Stat Cards Row -->
+        <div class="rpt-kpi-row">
+          <!-- Total Quotations -->
+          <div class="rpt-kpi-card">
+            <div class="rpt-kpi-icon rpt-kpi-icon--blue">
+              <i class="fa-regular fa-file-lines"></i>
             </div>
-            <div class="chart-body">
-              <p style="text-align: center; color: var(--text-muted);">فرع مكة يتصدر بأعلى قيمة إجمالية تجاوزت 22,000,000 ر.س يليه فرع جدة والمدينة المنورة.</p>
-            </div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-header">
-              <h2 class="chart-title">معدل اعتماد عروض الأسعار</h2>
-            </div>
-            <div class="chart-body">
-              <p style="text-align: center; color: var(--status-approved); font-size: 1.5rem; font-weight: 800;">21.0% معدل الاعتماد</p>
+            <div class="rpt-kpi-body">
+              <span class="rpt-kpi-label" data-i18n="kpi_total_quotations">TOTAL QUOTATIONS</span>
+              <span class="rpt-kpi-value" id="rpt-kpi-total">0</span>
             </div>
           </div>
-          <div class="chart-card">
-            <div class="chart-header">
-              <h2 class="chart-title">متوسط مدة سريان العرض</h2>
+
+          <!-- Total Value -->
+          <div class="rpt-kpi-card">
+            <div class="rpt-kpi-icon rpt-kpi-icon--green">
+              <i class="fa-solid fa-dollar-sign"></i>
             </div>
-            <div class="chart-body">
-              <p style="text-align: center; color: var(--brand-primary); font-size: 1.5rem; font-weight: 800;">90 يوماً</p>
+            <div class="rpt-kpi-body">
+              <span class="rpt-kpi-label">TOTAL VALUE</span>
+              <span class="rpt-kpi-value" id="rpt-kpi-total-value">0 SAR</span>
             </div>
+          </div>
+
+          <!-- Average Value -->
+          <div class="rpt-kpi-card">
+            <div class="rpt-kpi-icon rpt-kpi-icon--pink">
+              <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div class="rpt-kpi-body">
+              <span class="rpt-kpi-label">AVERAGE VALUE</span>
+              <span class="rpt-kpi-value" id="rpt-kpi-avg-value">0 SAR</span>
+            </div>
+          </div>
+
+          <!-- Highest Value -->
+          <div class="rpt-kpi-card">
+            <div class="rpt-kpi-icon rpt-kpi-icon--gold">
+              <i class="fa-solid fa-chart-bar"></i>
+            </div>
+            <div class="rpt-kpi-body">
+              <span class="rpt-kpi-label">HIGHEST VALUE</span>
+              <span class="rpt-kpi-value" id="rpt-kpi-highest-value">0 SAR</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row: Bar + Donut -->
+        <div class="rpt-charts-row">
+          <!-- Bar Chart: Quotation Value Distribution by Branch -->
+          <div class="rpt-chart-card rpt-chart-card--large">
+            <div class="rpt-chart-header">
+              <i class="fa-solid fa-chart-line rpt-chart-icon"></i>
+              <h2 class="rpt-chart-title">Quotation Value Distribution (Quotations by Branch)</h2>
+            </div>
+            <div class="rpt-chart-body">
+              <canvas id="rpt-chart-branch-value"></canvas>
+            </div>
+          </div>
+
+          <!-- Donut Chart: Quotations by Type -->
+          <div class="rpt-chart-card rpt-chart-card--small">
+            <div class="rpt-chart-header">
+              <i class="fa-solid fa-chart-bar rpt-chart-icon"></i>
+              <h2 class="rpt-chart-title">Quotations by Type</h2>
+            </div>
+            <div class="rpt-chart-body rpt-donut-body">
+              <canvas id="rpt-chart-type-donut"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full-width Area Line Chart: Monthly Value -->
+        <div class="rpt-chart-card rpt-chart-card--full">
+          <div class="rpt-chart-header">
+            <i class="fa-solid fa-chart-line rpt-chart-icon"></i>
+            <h2 class="rpt-chart-title">Monthly Quotations (Total Value)</h2>
+          </div>
+          <div class="rpt-chart-body rpt-chart-body--tall">
+            <canvas id="rpt-chart-monthly-value"></canvas>
           </div>
         </div>
       </section>
@@ -1390,6 +1456,7 @@
   <script src="js/revisions.js?v=2.9"></script>
   <script src="js/settings.js?v=2.9"></script>
   <script src="js/audit.js?v=2.9"></script>
+  <script src="js/reports.js?v=2.9"></script>
   <script src="js/app.js?v=2.9"></script>
 </body>
 </html>

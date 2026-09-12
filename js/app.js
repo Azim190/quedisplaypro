@@ -29,6 +29,7 @@ const DMCApp = {
     DMCRevisions.init();
     DMCSettings.init();
     DMCAudit.init();
+    if (typeof DMCReports !== 'undefined') DMCReports.init();
 
     // 6. Router Setup
     window.addEventListener('hashchange', () => this.handleRouting());
@@ -102,6 +103,7 @@ const DMCApp = {
         this.updateThemeTogglePill(next);
         // Refresh charts on theme switch
         DMCDashboard.renderAll();
+        if (typeof DMCReports !== 'undefined') DMCReports.renderAll();
       });
     }
 

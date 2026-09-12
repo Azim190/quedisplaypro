@@ -85,8 +85,27 @@ The application and REST API will be available at `http://localhost:3000`.
 
 ## 🚀 Deployment / طرق النشر والتشغيل
 
-### Option 1: GitHub Pages (Automatic Workflow Included)
-This repository includes a pre-configured GitHub Actions workflow in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+### Option 1: Render (Recommended for Multi-Device Database Sync / الخيار الأفضل لحفظ البيانات بين الأجهزة)
+Deploy as a **Web Service** on [Render](https://render.com) so the Node.js server and SQLite database run centrally in the cloud:
+
+1. Sign in to [dashboard.render.com](https://dashboard.render.com).
+2. Click **New +** → **Web Service** (do **not** choose Static Site).
+3. Connect your GitHub repository (`Azim190/quedisplaypro`).
+4. Configure the service settings:
+   - **Name:** `quedisplaypro` *(or any preferred name)*
+   - **Runtime:** `Node`
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start`
+   - **Instance Type:** `Free`
+5. Under **Environment Variables**, add:
+   - **Key:** `NODE_VERSION`
+   - **Value:** `22.12.0`
+6. Click **Deploy Web Service**. Your app and shared database will be live at `https://<service-name>.onrender.com/app.html`.
+
+*(Note: `render.yaml` is also included for automatic 1-click Blueprint deployment).*
+
+### Option 2: GitHub Pages (Client-Only / Static Mode)
+This repository includes a pre-configured GitHub Actions workflow in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). Note that in static mode, data is saved locally per device (LocalStorage).
 
 1. Push this repository to your GitHub account:
    ```bash
@@ -102,13 +121,13 @@ This repository includes a pre-configured GitHub Actions workflow in [`.github/w
    https://<YOUR-USERNAME>.github.io/<YOUR-REPO-NAME>/
    ```
 
-### Option 2: Vercel / Netlify
+### Option 3: Vercel / Netlify (Static Mode)
 1. Connect your GitHub repository to [Vercel](https://vercel.com) or [Netlify](https://netlify.com).
 2. Set Build Command to: *(None / leave empty)*
 3. Set Publish Directory to: `.` *(Root)*
 4. Click **Deploy**.
 
-### Option 3: Run Locally
+### Option 4: Run Locally (Full Server + SQLite)
 You can run the application with any simple HTTP server:
 
 ```bash

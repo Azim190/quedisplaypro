@@ -14,9 +14,9 @@
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <!-- Styles -->
-  <link rel="stylesheet" href="css/main.css?v=2.9">
-  <link rel="stylesheet" href="css/dashboard.css?v=2.9">
-  <link rel="stylesheet" href="css/components.css?v=2.9">
+  <link rel="stylesheet" href="css/main.css?v=3.1">
+  <link rel="stylesheet" href="css/dashboard.css?v=3.1">
+  <link rel="stylesheet" href="css/components.css?v=3.1">
 </head>
 <body>
 
@@ -994,14 +994,14 @@
 
       <div class="modal-body">
         <!-- Tabs in Details -->
-        <div class="d-flex gap-2" style="border-bottom: 1px solid var(--border-color); margin-bottom: 1.25rem;">
-          <button class="detail-tab-btn active" id="detail-tab-btn-overview" onclick="DMCDetails.switchTab('overview')">
+        <div class="detail-tabs-nav">
+          <button type="button" class="detail-tab-btn active" id="detail-tab-btn-overview" onclick="DMCDetails.switchTab('overview')">
             <i class="fa-solid fa-circle-info"></i> <span data-i18n="tab_overview">نظرة عامة</span>
           </button>
-          <button class="detail-tab-btn" id="detail-tab-btn-revisions" onclick="DMCDetails.switchTab('revisions')">
+          <button type="button" class="detail-tab-btn" id="detail-tab-btn-revisions" onclick="DMCDetails.switchTab('revisions')">
             <i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="tab_revisions">سجل التعديلات والنسخ (Revisions)</span>
           </button>
-          <button class="detail-tab-btn" id="detail-tab-btn-workflow" onclick="DMCDetails.switchTab('workflow')">
+          <button type="button" class="detail-tab-btn" id="detail-tab-btn-workflow" onclick="DMCDetails.switchTab('workflow')">
             <i class="fa-solid fa-route"></i> <span data-i18n="tab_workflow">سير العمل</span>
           </button>
         </div>

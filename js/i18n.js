@@ -235,7 +235,21 @@ const translations = {
     msg_deleted_success: 'تم حذف العرض بنجاح',
     confirm_delete: 'هل أنت متأكد من حذف عرض السعر هذا من الأرشيف؟',
     validation_error: 'يرجى تعبئة كافة الحقول الإلزامية وإرفاق ملف العرض',
-    rule_note: 'ملاحظة: هذا النظام مخصص للأرشفة والمتابعة فقط ولا يولد عروض أسعار.'
+    rule_note: 'ملاحظة: هذا النظام مخصص للأرشفة والمتابعة فقط ولا يولد عروض أسعار.',
+
+    // Workflow
+    tab_workflow: 'سير العمل',
+    workflow_add_step: 'إضافة خطوة جديدة',
+    workflow_process_name: 'اسم الإجراء / العملية',
+    workflow_notes: 'ملاحظات (اختياري)',
+    workflow_btn_save: 'حفظ الخطوة',
+    workflow_empty: 'لا توجد إجراءات مسجلة بعد لهذا العرض',
+    workflow_closed_msg: 'هذا العرض مغلق — لا يمكن إضافة خطوات جديدة',
+    workflow_step_added: 'تمت إضافة الخطوة بنجاح',
+    workflow_step_deleted: 'تم حذف الخطوة بنجاح',
+    workflow_confirm_delete: 'هل أنت متأكد من حذف هذه الخطوة؟',
+    workflow_performed_by: 'بواسطة',
+    workflow_section_title: 'سجل الإجراءات والعمليات المطبقة'
   },
 
   en: {
@@ -469,7 +483,21 @@ const translations = {
     msg_deleted_success: 'Quotation deleted successfully',
     confirm_delete: 'Are you sure you want to delete this quotation from archive?',
     validation_error: 'Please fill all required fields and attach a quotation document',
-    rule_note: 'Note: This system is for archiving and monitoring only. It does not generate quotations.'
+    rule_note: 'Note: This system is for archiving and monitoring only. It does not generate quotations.',
+
+    // Workflow
+    tab_workflow: 'Workflow',
+    workflow_add_step: 'Add New Step',
+    workflow_process_name: 'Process / Action Name',
+    workflow_notes: 'Notes (optional)',
+    workflow_btn_save: 'Save Step',
+    workflow_empty: 'No workflow steps recorded yet',
+    workflow_closed_msg: 'This quotation is closed — no new steps can be added',
+    workflow_step_added: 'Workflow step added successfully',
+    workflow_step_deleted: 'Workflow step deleted successfully',
+    workflow_confirm_delete: 'Are you sure you want to delete this step?',
+    workflow_performed_by: 'By',
+    workflow_section_title: 'Applied Processes & Actions Log'
   }
 };
 

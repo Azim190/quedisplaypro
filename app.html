@@ -1001,6 +1001,9 @@
           <button class="detail-tab-btn" id="detail-tab-btn-revisions" onclick="DMCDetails.switchTab('revisions')">
             <i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="tab_revisions">سجل التعديلات والنسخ (Revisions)</span>
           </button>
+          <button class="detail-tab-btn" id="detail-tab-btn-workflow" onclick="DMCDetails.switchTab('workflow')">
+            <i class="fa-solid fa-route"></i> <span data-i18n="tab_workflow">سير العمل</span>
+          </button>
         </div>
 
         <!-- Tab 1: Overview Details -->
@@ -1115,6 +1118,50 @@
             </button>
           </div>
           <div id="detail-revisions-list" class="revision-timeline">
+            <!-- Dynamically Rendered -->
+          </div>
+        </div>
+
+        <!-- Tab 3: Workflow Timeline & Process Tracking -->
+        <div id="detail-pane-workflow" class="detail-tab-pane" style="display: none;">
+          <!-- Locked Banner when status is closed -->
+          <div id="workflow-locked-banner" class="workflow-locked-banner" style="display: none;">
+            <i class="fa-solid fa-lock"></i>
+            <span data-i18n="workflow_closed_msg">هذا العرض مغلق — لا يمكن إضافة خطوات جديدة</span>
+          </div>
+
+          <!-- Add Step Form (hidden if closed) -->
+          <div id="workflow-add-step-container" class="workflow-add-container card p-3 mb-3" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
+            <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--text-heading);" data-i18n="workflow_add_step">إضافة خطوة جديدة</h4>
+            <form id="workflow-add-form" onsubmit="event.preventDefault(); DMCDetails.submitWorkflowStep();">
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label class="form-label">
+                    <span data-i18n="workflow_process_name">اسم الإجراء / العملية</span>
+                    <span class="required">*</span>
+                  </label>
+                  <input type="text" id="workflow-step-name" class="form-control" placeholder="مثال: تم إرسال العرض للعميل" required>
+                </div>
+              </div>
+              <div class="form-group" style="margin-top: 0.5rem;">
+                <label class="form-label" data-i18n="workflow_notes">ملاحظات (اختياري)</label>
+                <textarea id="workflow-step-notes" class="form-control" rows="2" placeholder="ملاحظات تفصيلية حول الإجراء..."></textarea>
+              </div>
+              <div style="margin-top: 0.75rem; text-align: left;">
+                <button type="submit" class="btn btn-gold btn-sm">
+                  <i class="fa-solid fa-plus"></i>
+                  <span data-i18n="workflow_btn_save">حفظ الخطوة</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Workflow Steps Timeline List -->
+          <div class="d-flex justify-between align-center" style="margin-bottom: 1rem;">
+            <h4 data-i18n="workflow_section_title" style="font-size: 0.95rem; font-weight: 700;">سجل الإجراءات والعمليات المطبقة</h4>
+            <span id="workflow-steps-count" class="badge" style="background: rgba(180, 142, 60, 0.15); color: var(--brand-gold); font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 9999px;">0</span>
+          </div>
+          <div id="detail-workflow-list" class="workflow-timeline">
             <!-- Dynamically Rendered -->
           </div>
         </div>

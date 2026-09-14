@@ -68,6 +68,17 @@ function getRevisionsForQuotation(quotationId) {
   return stmt.all(quotationId);
 }
 
+function getWorkflowStepsForQuotation(quotationId) {
+  const stmt = db.prepare(`
+    SELECT id, quotation_id as quotationId, process_ar as processAr, process_en as processEn,
+           performed_by as performedBy, notes, created_at as createdAt
+    FROM workflow_steps
+    WHERE quotation_id = ?
+    ORDER BY created_at ASC, id ASC
+  `);
+  return stmt.all(quotationId);
+}
+
 // -------------------------------------------------------------
 // API Endpoints
 // -------------------------------------------------------------
@@ -280,6 +291,7 @@ app.get('/api/quotations/:id', (req, res) => {
     }
 
     const revisions = getRevisionsForQuotation(row.id);
+    const workflowSteps = getWorkflowStepsForQuotation(row.id);
 
     res.json({
       ...row,
@@ -289,7 +301,8 @@ app.get('/api/quotations/:id', (req, res) => {
         type: row.fileType || 'application/pdf',
         fileLink: row.fileLink || ''
       },
-      revisions
+      revisions,
+      workflowSteps
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -518,6 +531,7 @@ app.delete('/api/quotations/:id', (req, res) => {
       return res.status(404).json({ error: 'Quotation not found' });
     }
 
+    db.prepare('DELETE FROM workflow_steps WHERE quotation_id = ?').run(id);
     db.prepare('DELETE FROM revisions WHERE quotation_id = ?').run(id);
     db.prepare('DELETE FROM quotations WHERE id = ?').run(id);
 
@@ -528,6 +542,101 @@ app.delete('/api/quotations/:id', (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// --- Workflow Endpoints ---
+
+// Get Workflow Steps
+app.get('/api/quotations/:id/workflow', (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = db.prepare('SELECT quotation_no FROM quotations WHERE id = ?').get(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Quotation not found' });
+    }
+    const steps = getWorkflowStepsForQuotation(id);
+    res.json({ steps });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add Workflow Step
+app.post('/api/quotations/:id/workflow', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { processAr, processEn, notes, userName } = req.body;
+
+    const existing = db.prepare('SELECT quotation_no, status FROM quotations WHERE id = ?').get(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Quotation not found' });
+    }
+
+    if (existing.status === 'closed') {
+      return res.status(400).json({ error: 'Cannot add workflow steps to a closed quotation' });
+    }
+
+    if (!processAr && !processEn) {
+      return res.status(400).json({ error: 'Process name is required' });
+    }
+
+    const stmt = db.prepare(`
+      INSERT INTO workflow_steps (quotation_id, process_ar, process_en, performed_by, notes)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+
+    const pAr = (processAr || processEn || '').trim();
+    const pEn = (processEn || processAr || '').trim();
+    const performedBy = userName || 'User';
+
+    const info = stmt.run(id, pAr, pEn, performedBy, notes || '');
+
+    addAuditLog('Workflow Step Added', performedBy, id, `Added workflow step: ${pEn} for ${existing.quotation_no}`, null, pEn);
+
+    res.status(201).json({
+      message: 'Workflow step added',
+      step: {
+        id: info.lastInsertRowid,
+        quotationId: id,
+        processAr: pAr,
+        processEn: pEn,
+        performedBy,
+        notes: notes || '',
+        createdAt: new Date().toISOString()
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete Workflow Step
+app.delete('/api/quotations/:id/workflow/:stepId', (req, res) => {
+  try {
+    const { id, stepId } = req.params;
+    const existing = db.prepare('SELECT quotation_no, status FROM quotations WHERE id = ?').get(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Quotation not found' });
+    }
+
+    if (existing.status === 'closed') {
+      return res.status(400).json({ error: 'Cannot delete workflow steps from a closed quotation' });
+    }
+
+    const step = db.prepare('SELECT * FROM workflow_steps WHERE id = ? AND quotation_id = ?').get(stepId, id);
+    if (!step) {
+      return res.status(404).json({ error: 'Workflow step not found' });
+    }
+
+    db.prepare('DELETE FROM workflow_steps WHERE id = ?').run(stepId);
+
+    addAuditLog('Workflow Step Deleted', req.body.userName || 'User', id, `Deleted workflow step: ${step.process_en} from ${existing.quotation_no}`, step.process_en, 'DELETED');
+
+    res.json({ message: 'Workflow step deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // Dashboard Analytics & KPI Counters
 app.get('/api/dashboard/stats', (req, res) => {

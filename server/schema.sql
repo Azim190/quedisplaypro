@@ -118,6 +118,17 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 10. Workflow Steps Table (Process Tracking)
+CREATE TABLE IF NOT EXISTS workflow_steps (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    quotation_id TEXT NOT NULL REFERENCES quotations(id) ON DELETE CASCADE,
+    process_ar TEXT NOT NULL,
+    process_en TEXT NOT NULL,
+    performed_by TEXT NOT NULL,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for ultra-fast dashboard queries & searching
 CREATE INDEX IF NOT EXISTS idx_quotations_branch ON quotations(branch_id);
 CREATE INDEX IF NOT EXISTS idx_quotations_status ON quotations(status);
@@ -126,3 +137,4 @@ CREATE INDEX IF NOT EXISTS idx_quotations_date ON quotations(creation_date);
 CREATE INDEX IF NOT EXISTS idx_quotations_no ON quotations(quotation_no);
 CREATE INDEX IF NOT EXISTS idx_revisions_quotation ON revisions(quotation_id);
 CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_workflow_quotation ON workflow_steps(quotation_id);

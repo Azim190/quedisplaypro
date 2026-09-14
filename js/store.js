@@ -13,6 +13,7 @@ const STORAGE_KEYS = {
   CURRENCIES: 'dmc_currencies',
   QUOTATIONS: 'dmc_quotations',
   AUDIT_LOGS: 'dmc_audit_logs',
+  WORKFLOW_STEPS: 'dmc_workflow_steps',
   SESSION: 'dmc_session',
   THEME: 'dmc_theme',
   SEEDED: 'dmc_data_v2'
@@ -613,6 +614,73 @@ const DMCStore = {
     }
 
     this.addAuditLog('Quotation Deleted', id, `Deleted quotation ${target.quotationNo}`, target.status, 'DELETED');
+    window.dispatchEvent(new CustomEvent('dmc-data-changed'));
+    return true;
+  },
+
+  // Workflow Steps CRUD
+  getWorkflowSteps(quotationId) {
+    const allSteps = JSON.parse(localStorage.getItem(STORAGE_KEYS.WORKFLOW_STEPS) || '[]');
+    return allSteps
+      .filter(s => s.quotationId === quotationId)
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  },
+
+  addWorkflowStep(quotationId, data) {
+    const quotation = this.getQuotationById(quotationId);
+    if (!quotation) return null;
+    if (quotation.status === 'closed') return null;
+
+    const allSteps = JSON.parse(localStorage.getItem(STORAGE_KEYS.WORKFLOW_STEPS) || '[]');
+    const currentUser = this.getCurrentUser();
+
+    const newStep = {
+      id: 'ws_' + Date.now(),
+      quotationId: quotationId,
+      processAr: data.processAr || data.processEn || '',
+      processEn: data.processEn || data.processAr || '',
+      performedBy: currentUser ? (currentUser.nameEn || currentUser.nameAr) : 'User',
+      notes: data.notes || '',
+      createdAt: new Date().toISOString()
+    };
+
+    allSteps.push(newStep);
+    localStorage.setItem(STORAGE_KEYS.WORKFLOW_STEPS, JSON.stringify(allSteps));
+
+    // Persist to SQLite backend if connected
+    if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+      DMCApi.addWorkflowStep(quotationId, {
+        processAr: newStep.processAr,
+        processEn: newStep.processEn,
+        notes: newStep.notes,
+        userName: newStep.performedBy
+      }).catch(e => console.warn('SQLite background workflow step error:', e));
+    }
+
+    this.addAuditLog('Workflow Step Added', quotationId, `Added workflow step: ${newStep.processEn} for ${quotation.quotationNo}`, null, newStep.processEn);
+    window.dispatchEvent(new CustomEvent('dmc-data-changed'));
+    return newStep;
+  },
+
+  deleteWorkflowStep(stepId, quotationId) {
+    const quotation = this.getQuotationById(quotationId);
+    if (!quotation) return false;
+    if (quotation.status === 'closed') return false;
+
+    let allSteps = JSON.parse(localStorage.getItem(STORAGE_KEYS.WORKFLOW_STEPS) || '[]');
+    const target = allSteps.find(s => s.id === stepId);
+    if (!target) return false;
+
+    allSteps = allSteps.filter(s => s.id !== stepId);
+    localStorage.setItem(STORAGE_KEYS.WORKFLOW_STEPS, JSON.stringify(allSteps));
+
+    // Persist to SQLite backend if connected
+    if (typeof DMCApi !== 'undefined' && DMCApi.isConnected) {
+      DMCApi.deleteWorkflowStep(quotationId, stepId)
+        .catch(e => console.warn('SQLite background workflow delete error:', e));
+    }
+
+    this.addAuditLog('Workflow Step Deleted', quotationId, `Deleted workflow step: ${target.processEn} from ${quotation.quotationNo}`, target.processEn, 'DELETED');
     window.dispatchEvent(new CustomEvent('dmc-data-changed'));
     return true;
   },

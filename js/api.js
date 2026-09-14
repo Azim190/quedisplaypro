@@ -184,6 +184,45 @@ const DMCApi = {
     }
   },
 
+  async getWorkflowSteps(id) {
+    if (!this.isConnected) return null;
+    try {
+      const res = await fetch(`${this.baseUrl}/quotations/${encodeURIComponent(id)}/workflow`);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.steps || [];
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async addWorkflowStep(id, stepData) {
+    if (!this.isConnected) return null;
+    try {
+      const res = await fetch(`${this.baseUrl}/quotations/${encodeURIComponent(id)}/workflow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(stepData)
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async deleteWorkflowStep(quotationId, stepId) {
+    if (!this.isConnected) return null;
+    try {
+      const res = await fetch(`${this.baseUrl}/quotations/${encodeURIComponent(quotationId)}/workflow/${encodeURIComponent(stepId)}`, {
+        method: 'DELETE'
+      });
+      return res.ok;
+    } catch (e) {
+      return false;
+    }
+  },
+
   async getDashboardStats() {
     if (!this.isConnected) return null;
     try {

@@ -172,6 +172,9 @@ const DMCQuotations = {
               <button class="btn btn-outline btn-icon" title="${t('action_view')}" onclick="DMCDetails.open('${item.id}')">
                 <i class="fa-regular fa-eye"></i>
               </button>
+              <button class="btn btn-outline btn-icon" title="${item.status === 'closed' ? t('workflow_closed_msg') : t('tab_workflow')}" onclick="DMCDetails.open('${item.id}', 'workflow')" style="color: ${item.status === 'closed' ? 'var(--text-muted)' : 'var(--brand-gold)'};">
+                <i class="fa-solid fa-route"></i>
+              </button>
               <button class="btn btn-outline btn-icon" title="${t('action_open_file')}" onclick="DMCQuotations.openFile('${item.id}')" style="color: #EF4444;">
                 <i class="fa-regular fa-file-pdf"></i>
               </button>

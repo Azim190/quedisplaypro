@@ -627,15 +627,61 @@
         </div>
 
         <div class="table-section">
+          <!-- Filters for Contracts Table -->
+          <div class="d-flex align-center justify-between flex-wrap gap-2" style="margin-bottom: 0.5rem;">
+            <div class="d-flex align-center gap-2 flex-wrap" style="flex: 1;">
+              <div style="min-width: 200px;">
+                <input type="text" id="contracts-search-input" class="form-control" placeholder="Search archive..." data-i18n-placeholder="contracts_search_placeholder">
+              </div>
+              <div style="min-width: 150px;">
+                <select id="contracts-filter-branch" class="form-select"></select>
+              </div>
+              <div style="min-width: 150px;">
+                <select id="contracts-filter-status" class="form-select"></select>
+              </div>
+            </div>
+
+            <div class="d-flex align-center gap-2">
+              <span style="font-size: 0.85rem; color: var(--text-muted);">عرض:</span>
+              <select id="contracts-page-size" class="form-select" style="width: 85px;">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+
           <div class="table-responsive">
-            <div style="padding: 3.5rem 1.5rem; text-align: center; color: var(--text-muted);">
-              <i class="fa-solid fa-file-signature" style="font-size: 3.5rem; color: var(--brand-gold); opacity: 0.75; margin-bottom: 1.25rem; display: block;"></i>
-              <h3 style="font-weight: 800; color: var(--text-heading); margin-bottom: 0.5rem; font-size: 1.25rem;" data-i18n="contracts_empty_title">أرشيف العقود الهندسية</h3>
-              <p style="font-size: 0.92rem; max-width: 520px; margin: 0 auto 1.5rem; line-height: 1.6;" data-i18n="contracts_empty_desc">يمكنك إدارة وتوثيق العقود المعتمدة الخاصة بالمشاريع الهندسية وربطها بعروض الأسعار المؤرشفة.</p>
-              <button type="button" class="btn btn-outline btn-trigger-add-contract">
-                <i class="fa-solid fa-plus"></i>
-                <span data-i18n="nav_add_contract">Add Contract</span>
-              </button>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-i18n="col_no">#</th>
+                  <th data-i18n="lbl_contract_no">Contract No.</th>
+                  <th data-i18n="col_title">Title</th>
+                  <th data-i18n="col_client">Client</th>
+                  <th data-i18n="col_branch">Branch</th>
+                  <th data-i18n="lbl_contract_type">Type</th>
+                  <th data-i18n="col_project_type">Project Type</th>
+                  <th data-i18n="col_amount">Amount</th>
+                  <th data-i18n="col_currency">Curr</th>
+                  <th data-i18n="col_status">Status</th>
+                  <th data-i18n="lbl_signing_date">Signing Date</th>
+                  <th data-i18n="col_valid_until">Valid Until</th>
+                  <th data-i18n="col_actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="contracts-table-body">
+                <!-- Dynamically Rendered -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="table-pagination">
+            <div id="contracts-showing-count">1 - 10 / 0</div>
+            <div class="pagination-controls" id="contracts-pagination-controls">
+              <!-- Dynamically Rendered -->
             </div>
           </div>
         </div>
@@ -1011,6 +1057,161 @@
         <button type="submit" form="quotation-form" class="btn btn-gold">
           <i class="fa-solid fa-floppy-disk"></i>
           <span data-i18n="btn_save_quotation">Save & Archive Quotation</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL: ADD / EDIT CONTRACT (ARCHIVING & LINKING)
+       ===================================================================== -->
+  <div id="modal-contract-form" class="modal-overlay">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-title-icon"><i class="fa-solid fa-file-signature"></i></div>
+          <h2 class="modal-title" id="modal-contract-form-title" data-i18n="modal_add_contract_title">Archive New Contract</h2>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="DMCContracts.closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="contract-modal-form">
+          <!-- SECTION 1: BASIC INFORMATION -->
+          <div class="form-section-title" data-i18n="sec_basic_info">المعلومات الأساسية</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_contract_no">رقم العقد</span> <span class="required">*</span></label>
+              <input type="text" id="contract-form-no" class="form-control" required placeholder="مثال: C-2026-0001">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_branch">الفرع</span> <span class="required">*</span></label>
+              <select id="contract-form-branch" class="form-select" required></select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_contract_title">عنوان العقد (عربي)</span> <span class="required">*</span></label>
+              <input type="text" id="contract-form-title-ar" class="form-control" placeholder="مثال: عقد الإشراف الهندسي على مشروع برج النور" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span>عنوان العقد (English)</span></label>
+              <input type="text" id="contract-form-title-en" class="form-control" placeholder="e.g. Supervision Contract for Al-Noor Tower">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_client_name">اسم العميل / الجهة (عربي)</span> <span class="required">*</span></label>
+              <input type="text" id="contract-form-client-ar" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span>اسم العميل / الجهة (English)</span></label>
+              <input type="text" id="contract-form-client-en" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_project_name">اسم المشروع (عربي)</span></label>
+              <input type="text" id="contract-form-project-ar" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span>اسم المشروع (English)</span></label>
+              <input type="text" id="contract-form-project-en" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_contract_type">نوع العقد</span> <span class="required">*</span></label>
+              <select id="contract-form-type" class="form-select" required></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_project_type">نوع المشروع</span> <span class="required">*</span></label>
+              <select id="contract-form-ptype" class="form-select" required></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_status">حالة العقد</span> <span class="required">*</span></label>
+              <select id="contract-form-status" class="form-select" required></select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_signing_date">تاريخ توقيع العقد</span> <span class="required">*</span></label>
+              <input type="date" id="contract-form-signing-date" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_valid_until">صالح حتى تاريخ / نهاية العقد</span></label>
+              <input type="date" id="contract-form-valid-until" class="form-control">
+            </div>
+          </div>
+
+          <!-- SECTION 2: FINANCIAL INFORMATION -->
+          <div class="form-section-title" data-i18n="sec_financial_info">المعلومات المالية</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_amount">مبلغ العقد (بدون ضريبة)</span> <span class="required">*</span></label>
+              <input type="number" id="contract-form-amount" class="form-control" min="0" step="100" placeholder="مثال: 50000" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_currency">العملة</span> <span class="required">*</span></label>
+              <select id="contract-form-currency" class="form-select"></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_vat_rate">ضريبة القيمة المضافة (15%)</span></label>
+              <input type="text" id="contract-form-vat" class="form-control" readonly style="background-color: var(--bg-app); font-weight: 700;">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span data-i18n="lbl_total_amount">الإجمالي النهائي شامل الضريبة</span></label>
+              <input type="text" id="contract-form-total" class="form-control" readonly style="font-weight: 800; font-size: 1.1rem; color: var(--brand-primary); background-color: var(--bg-app);">
+            </div>
+          </div>
+
+          <!-- SECTION 3: FILE LINK (ONEDRIVE / CLOUD / LOCAL ARCHIVE) -->
+          <div class="form-section-title" data-i18n="sec_file_attachment">وثيقة العقد المؤرشفة (رابط السحابة / OneDrive)</div>
+          <div class="form-group">
+            <label class="form-label">
+              <span data-i18n="lbl_file_link">رابط ملف العقد (OneDrive / سحابي / شبكة)</span>
+            </label>
+            <div class="d-flex align-center gap-2">
+              <div class="input-with-icon" style="flex: 1;">
+                <i class="fa-solid fa-link input-icon"></i>
+                <input type="url" id="contract-form-file-link" class="form-control" placeholder="https://onedrive.live.com/... أو أي رابط سحابي للعقد">
+              </div>
+              <button type="button" class="btn btn-outline" onclick="DMCContracts.testLink()" title="اختبار الرابط / Test Link">
+                <i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--brand-gold);"></i>
+                <span data-i18n="btn_test_link">اختبار الرابط</span>
+              </button>
+            </div>
+            <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem;" data-i18n="lbl_file_link_desc">
+              يمكنك لصق رابط المشاركة المباشر من OneDrive أو SharePoint أو أي سحابة تخزين
+            </span>
+          </div>
+
+          <div class="form-row" style="margin-top: 0.75rem;">
+            <div class="form-group">
+              <label class="form-label"><span>اسم الملف / وثيقة العقد</span></label>
+              <input type="text" id="contract-form-file-name" class="form-control" placeholder="مثال: DMC_Contract_2026_001.pdf">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 1rem;">
+            <label class="form-label"><span>ملاحظات إضافية / Additional Notes</span></label>
+            <textarea id="contract-form-notes" class="form-control" rows="2" placeholder="ملاحظات حول بنود العقد والدفعات..."></textarea>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="DMCContracts.closeModal()" data-i18n="btn_cancel">Cancel</button>
+        <button type="submit" form="contract-modal-form" class="btn btn-gold">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span data-i18n="btn_save_contract">Save & Archive Contract</span>
         </button>
       </div>
     </div>
@@ -1589,6 +1790,7 @@
   <script src="js/dashboard.js?v=2.9"></script>
   <script src="js/quotations.js?v=2.9"></script>
   <script src="js/form.js?v=2.9"></script>
+  <script src="js/contracts.js?v=2.9"></script>
   <script src="js/details.js?v=2.9"></script>
   <script src="js/revisions.js?v=2.9"></script>
   <script src="js/settings.js?v=2.9"></script>

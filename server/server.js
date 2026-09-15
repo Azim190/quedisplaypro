@@ -637,6 +637,224 @@ app.delete('/api/quotations/:id/workflow/:stepId', (req, res) => {
   }
 });
 
+// ============================================================================
+// CONTRACTS ENDPOINTS
+// ============================================================================
+
+// Get All Contracts
+app.get('/api/contracts', (req, res) => {
+  try {
+    const { branch, status, query } = req.query;
+    let sql = `
+      SELECT 
+        id, contract_no as contractNo, quotation_id as quotationId,
+        title_ar as titleAr, title_en as titleEn, branch_id as branchId,
+        client_name_ar as clientNameAr, client_name_en as clientNameEn,
+        project_name_ar as projectNameAr, project_name_en as projectNameEn,
+        project_type_id as projectTypeId, contract_type_id as contractTypeId,
+        amount, vat_rate as vatRate, vat_amount as vatAmount, total_amount as totalAmount,
+        currency, status, signing_date as signingDate, valid_until as validUntil,
+        file_link as fileLink, file_name as fileName, notes, created_at as createdAt
+      FROM contracts
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (branch && branch !== 'all') {
+      sql += ' AND branch_id = ?';
+      params.push(branch);
+    }
+    if (status && status !== 'all') {
+      sql += ' AND status = ?';
+      params.push(status);
+    }
+    if (query && query.trim()) {
+      const q = `%${query.trim()}%`;
+      sql += ' AND (contract_no LIKE ? OR title_ar LIKE ? OR title_en LIKE ? OR client_name_ar LIKE ? OR client_name_en LIKE ? OR project_name_ar LIKE ?)';
+      params.push(q, q, q, q, q, q);
+    }
+
+    sql += ' ORDER BY signing_date DESC, created_at DESC';
+    const rows = db.prepare(sql).all(...params);
+    res.json({ contracts: rows, total: rows.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get Single Contract
+app.get('/api/contracts/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const row = db.prepare(`
+      SELECT 
+        id, contract_no as contractNo, quotation_id as quotationId,
+        title_ar as titleAr, title_en as titleEn, branch_id as branchId,
+        client_name_ar as clientNameAr, client_name_en as clientNameEn,
+        project_name_ar as projectNameAr, project_name_en as projectNameEn,
+        project_type_id as projectTypeId, contract_type_id as contractTypeId,
+        amount, vat_rate as vatRate, vat_amount as vatAmount, total_amount as totalAmount,
+        currency, status, signing_date as signingDate, valid_until as validUntil,
+        file_link as fileLink, file_name as fileName, notes, created_at as createdAt
+      FROM contracts
+      WHERE id = ?
+    `).get(id);
+
+    if (!row) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+    res.json(row);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create Contract
+app.post('/api/contracts', (req, res) => {
+  try {
+    const data = req.body;
+    const id = data.id || ('c_' + Date.now());
+    const contractNo = data.contractNo || `C-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
+    const amount = Number(data.amount) || 0;
+    const vatRate = 0.15;
+    const vatAmount = Math.round(amount * vatRate);
+    const totalAmount = amount + vatAmount;
+
+    const stmt = db.prepare(`
+      INSERT INTO contracts (
+        id, contract_no, quotation_id, title_ar, title_en, branch_id,
+        client_name_ar, client_name_en, project_name_ar, project_name_en,
+        project_type_id, contract_type_id, amount, vat_rate, vat_amount,
+        total_amount, currency, status, signing_date, valid_until,
+        file_link, file_name, notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    stmt.run(
+      id,
+      contractNo,
+      data.quotationId || null,
+      data.titleAr || data.titleEn || 'عقد جديد',
+      data.titleEn || data.titleAr || 'New Contract',
+      data.branchId || 'b_1',
+      data.clientNameAr || data.clientNameEn || '',
+      data.clientNameEn || data.clientNameAr || '',
+      data.projectNameAr || data.projectNameEn || '',
+      data.projectNameEn || data.projectNameAr || '',
+      data.projectTypeId || 'pt_res_bld',
+      data.contractTypeId || 'qt_supervision',
+      amount,
+      vatRate,
+      vatAmount,
+      totalAmount,
+      data.currency || 'SAR',
+      data.status || 'ongoing',
+      data.signingDate || new Date().toISOString().slice(0, 10),
+      data.validUntil || null,
+      data.fileLink || '',
+      data.fileName || `DMC_Contract_${contractNo}.pdf`,
+      data.notes || ''
+    );
+
+    addAuditLog('Contract Created', data.userName || 'User', id, `Created contract ${contractNo}`, null, data.status || 'ongoing');
+
+    res.status(201).json({ id, contractNo, amount, vatAmount, totalAmount, status: data.status || 'ongoing' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update Contract
+app.put('/api/contracts/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = db.prepare('SELECT * FROM contracts WHERE id = ?').get(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+
+    const data = req.body;
+    let amount = existing.amount;
+    let vatAmount = existing.vat_amount;
+    let totalAmount = existing.total_amount;
+
+    if (data.amount !== undefined) {
+      amount = Number(data.amount) || 0;
+      vatAmount = Math.round(amount * 0.15);
+      totalAmount = amount + vatAmount;
+    }
+
+    const stmt = db.prepare(`
+      UPDATE contracts SET
+        title_ar = COALESCE(?, title_ar),
+        title_en = COALESCE(?, title_en),
+        branch_id = COALESCE(?, branch_id),
+        client_name_ar = COALESCE(?, client_name_ar),
+        client_name_en = COALESCE(?, client_name_en),
+        project_name_ar = COALESCE(?, project_name_ar),
+        project_name_en = COALESCE(?, project_name_en),
+        project_type_id = COALESCE(?, project_type_id),
+        contract_type_id = COALESCE(?, contract_type_id),
+        amount = ?,
+        vat_amount = ?,
+        total_amount = ?,
+        currency = COALESCE(?, currency),
+        status = COALESCE(?, status),
+        signing_date = COALESCE(?, signing_date),
+        valid_until = COALESCE(?, valid_until),
+        file_link = COALESCE(?, file_link),
+        file_name = COALESCE(?, file_name),
+        notes = COALESCE(?, notes),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    stmt.run(
+      data.titleAr || null,
+      data.titleEn || null,
+      data.branchId || null,
+      data.clientNameAr || null,
+      data.clientNameEn || null,
+      data.projectNameAr || null,
+      data.projectNameEn || null,
+      data.projectTypeId || null,
+      data.contractTypeId || null,
+      amount,
+      vatAmount,
+      totalAmount,
+      data.currency || null,
+      data.status || null,
+      data.signingDate || null,
+      data.validUntil || null,
+      data.fileLink || null,
+      data.fileName || null,
+      data.notes || null,
+      id
+    );
+
+    addAuditLog('Contract Updated', data.userName || 'User', id, `Updated contract ${existing.contract_no}`);
+    res.json({ message: 'Contract updated successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete Contract
+app.delete('/api/contracts/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = db.prepare('SELECT contract_no, status FROM contracts WHERE id = ?').get(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+
+    db.prepare('DELETE FROM contracts WHERE id = ?').run(id);
+    addAuditLog('Contract Deleted', req.body.userName || 'User', id, `Deleted contract ${existing.contract_no}`, existing.status, 'DELETED');
+    res.json({ message: 'Contract deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Dashboard Analytics & KPI Counters
 app.get('/api/dashboard/stats', (req, res) => {

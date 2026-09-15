@@ -253,7 +253,24 @@ const translations = {
     workflow_step_deleted: 'تم حذف الخطوة بنجاح',
     workflow_confirm_delete: 'هل أنت متأكد من حذف هذه الخطوة؟',
     workflow_performed_by: 'بواسطة',
-    workflow_section_title: 'سجل الإجراءات والعمليات المطبقة'
+    workflow_section_title: 'سجل الإجراءات والعمليات المطبقة',
+
+    // Contracts
+    modal_add_contract_title: 'أرشفة وتوثيق عقد جديد',
+    modal_edit_contract_title: 'تعديل بيانات العقد المؤرشف',
+    lbl_contract_no: 'رقم العقد',
+    lbl_contract_title: 'عنوان العقد (عربي)',
+    lbl_signing_date: 'تاريخ توقيع العقد',
+    lbl_contract_type: 'نوع العقد / الخدمة',
+    btn_save_contract: 'حفظ وأرشفة العقد',
+    msg_contract_saved: 'تم حفظ وأرشفة العقد بنجاح',
+    msg_contract_deleted: 'تم حذف العقد بنجاح',
+    confirm_delete_contract: 'هل أنت متأكد من حذف هذا العقد من الأرشيف؟',
+    contracts_archive_title: 'أرشيف العقود الهندسية',
+    contracts_search_placeholder: 'بحث في العقود (الرقم، العميل، المشروع، الفرع)...',
+    contracts_empty_title: 'أرشيف العقود الهندسية',
+    contracts_empty_desc: 'يمكنك إدارة وتوثيق العقود المعتمدة الخاصة بالمشاريع الهندسية وربطها بعروض الأسعار المؤرشفة.',
+    col_contract_no: 'رقم العقد'
   },
 
   en: {
@@ -505,7 +522,24 @@ const translations = {
     workflow_step_deleted: 'Workflow step deleted successfully',
     workflow_confirm_delete: 'Are you sure you want to delete this step?',
     workflow_performed_by: 'By',
-    workflow_section_title: 'Applied Processes & Actions Log'
+    workflow_section_title: 'Applied Processes & Actions Log',
+
+    // Contracts
+    modal_add_contract_title: 'Archive New Contract',
+    modal_edit_contract_title: 'Edit Archived Contract',
+    lbl_contract_no: 'Contract No.',
+    lbl_contract_title: 'Contract Title',
+    lbl_signing_date: 'Signing Date',
+    lbl_contract_type: 'Contract Type / Service',
+    btn_save_contract: 'Save & Archive Contract',
+    msg_contract_saved: 'Contract saved & archived successfully',
+    msg_contract_deleted: 'Contract deleted successfully',
+    confirm_delete_contract: 'Are you sure you want to delete this contract from the archive?',
+    contracts_archive_title: 'Engineering Contracts Archive',
+    contracts_search_placeholder: 'Search contracts (No., Client, Project, Branch)...',
+    contracts_empty_title: 'Engineering Contracts Archive',
+    contracts_empty_desc: 'Manage and archive certified engineering project contracts and link them to quotations.',
+    col_contract_no: 'Contract No.'
   }
 };
 

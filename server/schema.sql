@@ -138,3 +138,39 @@ CREATE INDEX IF NOT EXISTS idx_quotations_no ON quotations(quotation_no);
 CREATE INDEX IF NOT EXISTS idx_revisions_quotation ON revisions(quotation_id);
 CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at);
 CREATE INDEX IF NOT EXISTS idx_workflow_quotation ON workflow_steps(quotation_id);
+
+-- 11. Contracts Table (Engineering Project Contracts)
+CREATE TABLE IF NOT EXISTS contracts (
+    id TEXT PRIMARY KEY,
+    contract_no TEXT UNIQUE NOT NULL,
+    quotation_id TEXT,
+    title_ar TEXT NOT NULL,
+    title_en TEXT,
+    branch_id TEXT NOT NULL REFERENCES branches(id),
+    client_name_ar TEXT NOT NULL,
+    client_name_en TEXT,
+    project_name_ar TEXT,
+    project_name_en TEXT,
+    project_type_id TEXT REFERENCES project_types(id),
+    contract_type_id TEXT REFERENCES quotation_types(id),
+    amount REAL NOT NULL,
+    vat_rate REAL DEFAULT 0.15,
+    vat_amount REAL NOT NULL,
+    total_amount REAL NOT NULL,
+    currency TEXT DEFAULT 'SAR',
+    status TEXT NOT NULL DEFAULT 'active',
+    signing_date DATE NOT NULL,
+    valid_until DATE,
+    file_link TEXT,
+    file_name TEXT,
+    file_size TEXT,
+    file_type TEXT,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_contracts_branch ON contracts(branch_id);
+CREATE INDEX IF NOT EXISTS idx_contracts_status ON contracts(status);
+CREATE INDEX IF NOT EXISTS idx_contracts_no ON contracts(contract_no);
+

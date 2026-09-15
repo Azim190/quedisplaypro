@@ -12,6 +12,7 @@ const STORAGE_KEYS = {
   STATUSES: 'dmc_statuses',
   CURRENCIES: 'dmc_currencies',
   QUOTATIONS: 'dmc_quotations',
+  CONTRACTS: 'dmc_contracts',
   AUDIT_LOGS: 'dmc_audit_logs',
   WORKFLOW_STEPS: 'dmc_workflow_steps',
   SESSION: 'dmc_session',
@@ -53,6 +54,13 @@ const DMCStore = {
       const serverUsers = await DMCApi.getUsers();
       if (serverUsers && Array.isArray(serverUsers) && serverUsers.length > 0) {
         localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(serverUsers));
+      }
+
+      if (typeof DMCApi.getContracts === 'function') {
+        const serverContracts = await DMCApi.getContracts();
+        if (serverContracts && Array.isArray(serverContracts) && serverContracts.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.CONTRACTS, JSON.stringify(serverContracts));
+        }
       }
 
       window.dispatchEvent(new CustomEvent('dmc-data-changed'));
@@ -616,6 +624,156 @@ const DMCStore = {
     this.addAuditLog('Quotation Deleted', id, `Deleted quotation ${target.quotationNo}`, target.status, 'DELETED');
     window.dispatchEvent(new CustomEvent('dmc-data-changed'));
     return true;
+  },
+
+  // CRUD Operations on Contracts
+  getContracts(filterOptions = {}) {
+    let items = JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTRACTS) || '[]');
+
+    if (filterOptions.branch && filterOptions.branch !== 'all') {
+      items = items.filter(c => c.branchId === filterOptions.branch);
+    }
+    if (filterOptions.status && filterOptions.status !== 'all') {
+      items = items.filter(c => c.status === filterOptions.status);
+    }
+    if (filterOptions.type && filterOptions.type !== 'all') {
+      items = items.filter(c => c.contractTypeId === filterOptions.type);
+    }
+    if (filterOptions.query && filterOptions.query.trim()) {
+      const q = filterOptions.query.trim().toLowerCase();
+      items = items.filter(item => (
+        (item.contractNo && item.contractNo.toLowerCase().includes(q)) ||
+        (item.titleAr && item.titleAr.toLowerCase().includes(q)) ||
+        (item.titleEn && item.titleEn.toLowerCase().includes(q)) ||
+        (item.clientNameAr && item.clientNameAr.toLowerCase().includes(q)) ||
+        (item.clientNameEn && item.clientNameEn.toLowerCase().includes(q)) ||
+        (item.projectNameAr && item.projectNameAr.toLowerCase().includes(q))
+      ));
+    }
+    return items;
+  },
+
+  getContractById(id) {
+    const items = JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTRACTS) || '[]');
+    return items.find(c => c.id === id) || null;
+  },
+
+  saveContract(contractData) {
+    const items = JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTRACTS) || '[]');
+    const currentYear = new Date().getFullYear();
+    const count = items.length;
+    const contractNo = contractData.contractNo || `C-${currentYear}-${String(count + 1).padStart(4, '0')}`;
+
+    const amount = Number(contractData.amount) || 0;
+    const vatRate = 0.15;
+    const vatAmount = Math.round(amount * vatRate);
+    const totalAmount = amount + vatAmount;
+
+    const newContract = {
+      id: contractData.id || 'c_' + Date.now(),
+      contractNo: contractNo,
+      quotationId: contractData.quotationId || '',
+      titleAr: contractData.titleAr || '',
+      titleEn: contractData.titleEn || contractData.titleAr || '',
+      branchId: contractData.branchId || 'b_1',
+      clientNameAr: contractData.clientNameAr || '',
+      clientNameEn: contractData.clientNameEn || contractData.clientNameAr || '',
+      projectNameAr: contractData.projectNameAr || '',
+      projectNameEn: contractData.projectNameEn || '',
+      projectTypeId: contractData.projectTypeId || 'pt_res_bld',
+      contractTypeId: contractData.contractTypeId || 'qt_supervision',
+      amount: amount,
+      vatRate: vatRate,
+      vatAmount: vatAmount,
+      totalAmount: totalAmount,
+      currency: contractData.currency || 'SAR',
+      status: contractData.status || 'ongoing',
+      signingDate: contractData.signingDate || new Date().toISOString().slice(0, 10),
+      validUntil: contractData.validUntil || '',
+      fileLink: contractData.fileLink || '',
+      fileName: contractData.fileName || `DMC_Contract_${contractNo}.pdf`,
+      notes: contractData.notes || '',
+      createdAt: new Date().toISOString()
+    };
+
+    items.unshift(newContract);
+    localStorage.setItem(STORAGE_KEYS.CONTRACTS, JSON.stringify(items));
+
+    // Persist to SQLite backend if connected
+    if (typeof DMCApi !== 'undefined' && DMCApi.isConnected && typeof DMCApi.createContract === 'function') {
+      const currentUser = this.getCurrentUser();
+      DMCApi.createContract({
+        ...newContract,
+        userName: currentUser ? currentUser.nameEn : 'User'
+      }).catch(e => console.warn('SQLite background contract save error:', e));
+    }
+
+    this.addAuditLog('Contract Created', newContract.id, `Created contract ${contractNo}`, null, newContract.status);
+    window.dispatchEvent(new CustomEvent('dmc-data-changed'));
+    return newContract;
+  },
+
+  updateContract(id, updatedFields) {
+    const items = JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTRACTS) || '[]');
+    const index = items.findIndex(c => c.id === id);
+    if (index === -1) return null;
+
+    const oldItem = { ...items[index] };
+    if (updatedFields.amount !== undefined) {
+      const amount = Number(updatedFields.amount) || 0;
+      updatedFields.vatAmount = Math.round(amount * 0.15);
+      updatedFields.totalAmount = amount + updatedFields.vatAmount;
+    }
+
+    items[index] = { ...items[index], ...updatedFields };
+    localStorage.setItem(STORAGE_KEYS.CONTRACTS, JSON.stringify(items));
+
+    // Persist to SQLite backend if connected
+    if (typeof DMCApi !== 'undefined' && DMCApi.isConnected && typeof DMCApi.updateContract === 'function') {
+      const currentUser = this.getCurrentUser();
+      DMCApi.updateContract(id, {
+        ...updatedFields,
+        userName: currentUser ? currentUser.nameEn : 'User'
+      }).catch(e => console.warn('SQLite background contract update error:', e));
+    }
+
+    this.addAuditLog('Contract Edited', id, `Updated contract ${oldItem.contractNo}`, oldItem, items[index]);
+    window.dispatchEvent(new CustomEvent('dmc-data-changed'));
+    return items[index];
+  },
+
+  deleteContract(id) {
+    let items = JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTRACTS) || '[]');
+    const target = items.find(c => c.id === id);
+    if (!target) return false;
+
+    items = items.filter(c => c.id !== id);
+    localStorage.setItem(STORAGE_KEYS.CONTRACTS, JSON.stringify(items));
+
+    // Persist to SQLite backend if connected
+    if (typeof DMCApi !== 'undefined' && DMCApi.isConnected && typeof DMCApi.deleteContract === 'function') {
+      const currentUser = this.getCurrentUser();
+      DMCApi.deleteContract(id, currentUser ? currentUser.nameEn : 'User')
+        .catch(e => console.warn('SQLite background contract delete error:', e));
+    }
+
+    this.addAuditLog('Contract Deleted', id, `Deleted contract ${target.contractNo}`, target.status, 'DELETED');
+    window.dispatchEvent(new CustomEvent('dmc-data-changed'));
+    return true;
+  },
+
+  updateContractStatus(id, newStatus) {
+    const items = JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTRACTS) || '[]');
+    const item = items.find(c => c.id === id);
+    if (!item) return null;
+
+    const oldStatus = item.status;
+    item.status = newStatus;
+    localStorage.setItem(STORAGE_KEYS.CONTRACTS, JSON.stringify(items));
+
+    this.addAuditLog('Contract Status Changed', id, `Status changed from ${oldStatus} to ${newStatus}`, oldStatus, newStatus);
+    window.dispatchEvent(new CustomEvent('dmc-data-changed'));
+    return item;
   },
 
   // Workflow Steps CRUD

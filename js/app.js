@@ -30,6 +30,7 @@ const DMCApp = {
     DMCSettings.init();
     DMCAudit.init();
     if (typeof DMCReports !== 'undefined') DMCReports.init();
+    if (typeof DMCContracts !== 'undefined') DMCContracts.init();
 
     // 6. Router Setup
     window.addEventListener('hashchange', () => this.handleRouting());
@@ -145,9 +146,8 @@ const DMCApp = {
     // Add Contract Buttons
     document.querySelectorAll('.btn-trigger-add-contract').forEach(btn => {
       btn.addEventListener('click', () => {
-        const isAr = typeof getLang === 'function' && getLang() === 'ar';
-        if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
-          DMCApp.showToast(isAr ? 'نظام أرشفة وتوثيق العقود قيد الإعداد والتفعيل' : 'Contracts archive module coming soon', 'info');
+        if (typeof DMCContracts !== 'undefined') {
+          DMCContracts.openNew();
         }
       });
     });
@@ -197,6 +197,9 @@ const DMCApp = {
     const targetView = document.getElementById(`view-${viewName}`);
     if (targetView) {
       targetView.style.display = 'block';
+      if (viewName === 'contracts' && typeof DMCContracts !== 'undefined') {
+        DMCContracts.render();
+      }
     } else {
       const defaultView = document.getElementById('view-dashboard');
       if (defaultView) defaultView.style.display = 'block';

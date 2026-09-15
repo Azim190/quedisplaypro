@@ -284,6 +284,84 @@ const DMCApi = {
       console.warn('API deleteUser error:', e);
       return false;
     }
+  },
+
+  // --- Contracts Methods ---
+  async getContracts(filters = {}) {
+    if (!this.isConnected) return null;
+    try {
+      const params = new URLSearchParams();
+      if (filters.branch && filters.branch !== 'all') params.append('branch', filters.branch);
+      if (filters.status && filters.status !== 'all') params.append('status', filters.status);
+      if (filters.query) params.append('query', filters.query);
+
+      const url = `${this.baseUrl}/contracts${params.toString() ? '?' + params.toString() : ''}`;
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.contracts || [];
+    } catch (e) {
+      console.warn('API getContracts error:', e);
+      return null;
+    }
+  },
+
+  async getContract(id) {
+    if (!this.isConnected) return null;
+    try {
+      const res = await fetch(`${this.baseUrl}/contracts/${encodeURIComponent(id)}`);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async createContract(data) {
+    if (!this.isConnected) return null;
+    try {
+      const res = await fetch(`${this.baseUrl}/contracts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      console.warn('API createContract error:', e);
+      return null;
+    }
+  },
+
+  async updateContract(id, data) {
+    if (!this.isConnected) return null;
+    try {
+      const res = await fetch(`${this.baseUrl}/contracts/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      console.warn('API updateContract error:', e);
+      return null;
+    }
+  },
+
+  async deleteContract(id, userName) {
+    if (!this.isConnected) return null;
+    try {
+      const res = await fetch(`${this.baseUrl}/contracts/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userName })
+      });
+      return res.ok;
+    } catch (e) {
+      console.warn('API deleteContract error:', e);
+      return false;
+    }
   }
 };
 

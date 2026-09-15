@@ -145,7 +145,10 @@ const DMCForm = {
       alert('يرجى كتابة أو لصق رابط الملف أولاً لاختباره / Please enter a file link first.');
       return;
     }
-    window.open(url, '_blank');
+    const previewUrl = typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl
+      ? DMCApp.formatDrivePreviewUrl(url)
+      : url;
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
   },
 
   openNew() {
@@ -264,7 +267,10 @@ const DMCForm = {
     const validUntil = document.getElementById('form-valid-until').value;
     const notes = document.getElementById('form-notes').value;
 
-    const fileLink = (document.getElementById('form-file-link') ? document.getElementById('form-file-link').value.trim() : '');
+    const rawLink = (document.getElementById('form-file-link') ? document.getElementById('form-file-link').value.trim() : '');
+    const fileLink = (typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl)
+      ? DMCApp.formatDrivePreviewUrl(rawLink)
+      : rawLink;
     const fileName = (document.getElementById('form-file-name') ? document.getElementById('form-file-name').value.trim() : '') || `${quotationNo}_Document.pdf`;
     const filePlatform = (document.getElementById('form-file-type') ? document.getElementById('form-file-type').value : 'Microsoft OneDrive');
 

@@ -269,6 +269,74 @@ const DMCApp = {
     const modal = document.getElementById('modal-confirm');
     if (modal) modal.classList.remove('active');
     this._confirmCallback = null;
+  },
+
+  /**
+   * Transforms Drive URLs (Google Drive, OneDrive, SharePoint, Docs) to clean,
+   * single-file isolated preview mode, preventing folder directory listings or other files.
+   */
+  formatDrivePreviewUrl(url) {
+    if (!url) return '';
+    let cleanUrl = String(url).trim();
+
+    // Add protocol if missing
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://') && !cleanUrl.startsWith('data:') && !cleanUrl.startsWith('blob:')) {
+      if (cleanUrl.includes('.') && !cleanUrl.includes(' ')) {
+        cleanUrl = 'https://' + cleanUrl;
+      }
+    }
+
+    // 1. Google Drive File: /file/d/ID/... or open?id=ID or uc?id=ID
+    const gDriveFileMatch = cleanUrl.match(/drive\.google\.com\/(?:file\/d\/([a-zA-Z0-9_-]+)|(?:open|uc)\?(?:[^\s]*&)?id=([a-zA-Z0-9_-]+))/i);
+    if (gDriveFileMatch) {
+      const fileId = gDriveFileMatch[1] || gDriveFileMatch[2];
+      return `https://drive.google.com/file/d/${fileId}/preview`;
+    }
+
+    // 2. Google Docs / Sheets / Slides
+    const gDocsMatch = cleanUrl.match(/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([a-zA-Z0-9_-]+)/i);
+    if (gDocsMatch) {
+      const docType = gDocsMatch[1];
+      const docId = gDocsMatch[2];
+      return `https://docs.google.com/${docType}/d/${docId}/preview`;
+    }
+
+    // 3. Google Drive Folder: /drive/folders/ID or /drive/u/0/folders/ID
+    const gFolderMatch = cleanUrl.match(/drive\.google\.com\/(?:drive\/(?:u\/\d+\/)?folders\/([a-zA-Z0-9_-]+))/i);
+    if (gFolderMatch) {
+      const folderId = gFolderMatch[1];
+      const innerFileMatch = cleanUrl.match(/[?&](?:fileId|id)=([a-zA-Z0-9_-]+)/i);
+      if (innerFileMatch) {
+        return `https://drive.google.com/file/d/${innerFileMatch[1]}/preview`;
+      }
+      return `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
+    }
+
+    // 4. Microsoft OneDrive
+    if (cleanUrl.includes('onedrive.live.com')) {
+      if (cleanUrl.includes('view.aspx')) {
+        cleanUrl = cleanUrl.replace('view.aspx', 'embed');
+      } else if (!cleanUrl.includes('action=embedview') && !cleanUrl.includes('embed')) {
+        cleanUrl += (cleanUrl.includes('?') ? '&' : '?') + 'action=embedview';
+      }
+      return cleanUrl;
+    }
+
+    // 5. Microsoft SharePoint
+    if (cleanUrl.includes('.sharepoint.com')) {
+      if (!cleanUrl.includes('action=embedview') && !cleanUrl.includes('action=embed')) {
+        cleanUrl += (cleanUrl.includes('?') ? '&' : '?') + 'action=embedview';
+      }
+      return cleanUrl;
+    }
+
+    // 6. Dropbox: convert dl=0 to raw=1 for direct viewing
+    if (cleanUrl.includes('dropbox.com')) {
+      cleanUrl = cleanUrl.replace('dl=0', 'raw=1');
+      return cleanUrl;
+    }
+
+    return cleanUrl;
   }
 };
 

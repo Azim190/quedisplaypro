@@ -258,7 +258,10 @@ const DMCContracts = {
       alert(typeof getLang === 'function' && getLang() === 'ar' ? 'يرجى كتابة أو لصق رابط الملف أولاً لاختباره' : 'Please enter a file link first.');
       return;
     }
-    window.open(url, '_blank');
+    const previewUrl = typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl
+      ? DMCApp.formatDrivePreviewUrl(url)
+      : url;
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
   },
 
   openNew() {
@@ -352,7 +355,10 @@ const DMCContracts = {
     const validUntil = document.getElementById('contract-form-valid-until').value;
     const amount = Number(document.getElementById('contract-form-amount').value) || 0;
     const currency = document.getElementById('contract-form-currency').value || 'SAR';
-    const fileLink = document.getElementById('contract-form-file-link').value.trim();
+    const rawFileLink = document.getElementById('contract-form-file-link').value.trim();
+    const fileLink = (typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl)
+      ? DMCApp.formatDrivePreviewUrl(rawFileLink)
+      : rawFileLink;
     const fileName = document.getElementById('contract-form-file-name').value.trim();
     const notes = document.getElementById('contract-form-notes').value.trim();
 
@@ -417,7 +423,15 @@ const DMCContracts = {
       }
       return;
     }
-    window.open(contract.fileLink, '_blank', 'noopener,noreferrer');
+
+    const previewUrl = typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl
+      ? DMCApp.formatDrivePreviewUrl(contract.fileLink)
+      : contract.fileLink;
+
+    if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+      DMCApp.showToast(getLang() === 'ar' ? 'جاري فتح معاينة الملف المستقلة في الدرايف...' : 'Opening single file preview in Drive...', 'info');
+    }
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
   },
 
   render() {

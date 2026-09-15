@@ -266,13 +266,16 @@ const DMCQuotations = {
 
     // Open directly in Drive link (OneDrive, Google Drive, SharePoint, cloud server link)
     if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://') || fileUrl.startsWith('//'))) {
-      const win = window.open(fileUrl, '_blank');
+      const previewUrl = typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl 
+        ? DMCApp.formatDrivePreviewUrl(fileUrl) 
+        : fileUrl;
+      const win = window.open(previewUrl, '_blank', 'noopener,noreferrer');
       if (win) {
         try { win.opener = null; } catch (e) {}
       }
 
       if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
-        DMCApp.showToast(getLang() === 'ar' ? 'جاري فتح الملف في الرابط السحابي (Drive)...' : 'Opening file in Drive link...', 'info');
+        DMCApp.showToast(getLang() === 'ar' ? 'جاري فتح معاينة الملف المستقلة في الدرايف...' : 'Opening single file preview in Drive...', 'info');
       }
       return;
     }
@@ -381,20 +384,23 @@ const DMCQuotations = {
     const cloudBtn = document.getElementById('doc-viewer-btn-cloud');
     const cloudBanner = document.getElementById('doc-viewer-cloud-banner');
 
-    if (fileUrl && fileUrl.trim().length > 0) {
+      const previewUrl = typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl 
+        ? DMCApp.formatDrivePreviewUrl(fileUrl) 
+        : fileUrl;
+
       if (cloudBtn) {
         cloudBtn.style.display = 'inline-flex';
-        cloudBtn.onclick = () => window.open(fileUrl, '_blank');
+        cloudBtn.onclick = () => window.open(previewUrl, '_blank', 'noopener,noreferrer');
       }
       if (cloudBanner) {
         cloudBanner.innerHTML = `
           <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1.25rem;">
             <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.88rem; color: #10B981;">
-              <i class="fa-brands fa-microsoft" style="font-size: 1.2rem;"></i>
-              <span><strong>الوثيقة المؤرشفة سحابياً:</strong> ${quotation.fileName || (quotation.file && quotation.file.name) || 'مستند العرض (OneDrive)'}</span>
+              <i class="fa-solid fa-file-pdf" style="font-size: 1.2rem;"></i>
+              <span><strong>الوثيقة المؤرشفة سحابياً:</strong> ${quotation.fileName || (quotation.file && quotation.file.name) || 'مستند العرض (Drive)'}</span>
             </div>
-            <button type="button" class="btn btn-sm btn-outline" style="border-color: #10B981; color: #10B981; font-weight: 700;" onclick="window.open('${fileUrl}', '_blank')">
-              <i class="fa-solid fa-arrow-up-right-from-square"></i> فتح الرابط السحابي
+            <button type="button" class="btn btn-sm btn-outline" style="border-color: #10B981; color: #10B981; font-weight: 700;" onclick="window.open('${previewUrl}', '_blank', 'noopener,noreferrer')">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> معاينة الملف فقط
             </button>
           </div>
         `;

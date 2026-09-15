@@ -57,8 +57,13 @@ const DMCDetails = {
     const linkEl = document.getElementById('detail-file-link-url');
     if (linkEl) {
       if (fileUrl) {
-        linkEl.href = fileUrl;
+        const previewUrl = typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl
+          ? DMCApp.formatDrivePreviewUrl(fileUrl)
+          : fileUrl;
+        linkEl.href = previewUrl;
         linkEl.textContent = fileUrl;
+        linkEl.target = '_blank';
+        linkEl.rel = 'noopener noreferrer';
         linkEl.style.display = 'inline-block';
       } else {
         linkEl.href = 'javascript:void(0)';

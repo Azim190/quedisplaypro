@@ -372,8 +372,10 @@ const DMCApp = {
       // Try to find a resid (specific file resource ID) for a proper embed URL
       const residMatch = cleanUrl.match(/resid=([A-Z0-9!.]+)/i);
       const authkeyMatch = cleanUrl.match(/authkey=([^&\s]+)/i);
+      const redeemMatch = cleanUrl.match(/redeem=([^&\s]+)/i);
       if (residMatch) {
         let embedUrl = `https://onedrive.live.com/embed?resid=${encodeURIComponent(residMatch[1])}`;
+        if (redeemMatch) embedUrl += `&redeem=${encodeURIComponent(redeemMatch[1])}`;
         if (authkeyMatch) embedUrl += `&authkey=${encodeURIComponent(authkeyMatch[1])}`;
         embedUrl += '&em=2';
         return embedUrl;
@@ -414,6 +416,103 @@ const DMCApp = {
     }
 
     return cleanUrl;
+  },
+
+  /**
+   * Opens the file in a completely isolated view (no drive folder, no other files).
+   * Opens an initial tab immediately to avoid popup blockers, resolves any redirection
+   * (e.g. 1drv.ms -> onedrive embed with resid and redeem), and points the tab to it.
+   */
+  async openSingleFile(url) {
+    if (!url) return;
+    let cleanUrl = String(url).trim();
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://') &&
+        !cleanUrl.startsWith('data:') && !cleanUrl.startsWith('blob:')) {
+      if (cleanUrl.includes('.') && !cleanUrl.includes(' ')) {
+        cleanUrl = 'https://' + cleanUrl;
+      }
+    }
+
+    // Warn if this looks like a folder URL (not a specific file)
+    if (this.isFolderUrl && this.isFolderUrl(cleanUrl)) {
+      this.showToast(
+        typeof getLang === 'function' && getLang() === 'ar'
+          ? '⚠️ الرابط المحفوظ يشير إلى مجلد وليس ملفاً. سيتم فتح المجلد — يُرجى حفظ رابط الملف المباشر لعرضه بشكل مستقل.'
+          : '⚠️ The saved link points to a folder. Please save a direct file link to isolate document preview.',
+        'warning'
+      );
+    } else {
+      this.showToast(
+        typeof getLang === 'function' && getLang() === 'ar'
+          ? 'جاري فتح معاينة الملف المستقلة...'
+          : 'Opening single file preview...',
+        'info'
+      );
+    }
+
+    // Fast path: if already a Google Drive or isolated embed URL
+    let previewUrl = this.formatDrivePreviewUrl(cleanUrl);
+
+    // If 1drv.ms or requires server-side redirect resolution:
+    if (/1drv\.ms/i.test(cleanUrl) || (!previewUrl.includes('/embed') && !previewUrl.includes('/preview') && cleanUrl.includes('onedrive.live.com'))) {
+      const isAr = typeof getLang === 'function' && getLang() === 'ar';
+      const title = isAr ? 'معاينة المستند المستقل - DMC' : 'Isolated Document Preview - DMC';
+      const h2 = isAr ? 'جاري تجهيز المستند المستقل...' : 'Preparing isolated document...';
+      const p = isAr ? 'يتم عزل المعاينة لعرض هذا الملف فقط ومنع تصفح المجلد أو الملفات الأخرى' : 'Isolating preview to display only this file without folder contents';
+
+      const win = window.open('about:blank', '_blank');
+      if (win) {
+        try {
+          win.document.write(`
+            <!DOCTYPE html>
+            <html dir="${isAr ? 'rtl' : 'ltr'}" lang="${isAr ? 'ar' : 'en'}">
+            <head>
+              <meta charset="utf-8">
+              <title>${title}</title>
+              <style>
+                body { margin: 0; padding: 0; background: #0b0f19; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+                .spinner { width: 50px; height: 50px; border: 4px solid rgba(212, 175, 55, 0.2); border-top-color: #d4af37; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1.5rem; }
+                @keyframes spin { to { transform: rotate(360deg); } }
+                h2 { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.5rem 0; color: #f8fafc; }
+                p { font-size: 0.9rem; color: #94a3b8; margin: 0; max-width: 400px; line-height: 1.5; }
+              </style>
+            </head>
+            <body>
+              <div class="spinner"></div>
+              <h2>${h2}</h2>
+              <p>${p}</p>
+            </body>
+            </html>
+          `);
+        } catch(e) {}
+      }
+
+      try {
+        const resp = await fetch(`/api/drive/resolve?url=${encodeURIComponent(cleanUrl)}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.previewUrl) {
+            previewUrl = data.previewUrl;
+          }
+        }
+      } catch (err) {
+        console.warn('Resolution fallback:', err);
+      }
+
+      if (win && !win.closed) {
+        win.location.replace(previewUrl);
+        try { win.opener = null; } catch(e) {}
+      } else {
+        window.open(previewUrl, '_blank', 'noopener,noreferrer');
+      }
+      return;
+    }
+
+    // Direct open
+    const win = window.open(previewUrl, '_blank', 'noopener,noreferrer');
+    if (win) {
+      try { win.opener = null; } catch(e) {}
+    }
   }
 };
 

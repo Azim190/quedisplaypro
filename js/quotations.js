@@ -266,26 +266,16 @@ const DMCQuotations = {
 
     // Open directly in Drive link (OneDrive, Google Drive, SharePoint, cloud server link)
     if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://') || fileUrl.startsWith('//'))) {
-      // Warn if this looks like a folder URL (not a specific file)
-      if (typeof DMCApp !== 'undefined' && DMCApp.isFolderUrl && DMCApp.isFolderUrl(fileUrl)) {
-        DMCApp.showToast(
-          getLang() === 'ar'
-            ? '⚠️ الرابط المحفوظ يشير إلى مجلد وليس ملفاً. سيتم فتح المجلد — يُرجى حفظ رابط الملف المباشر.'
-            : '⚠️ The saved link points to a folder, not a specific file. Please save a direct file link instead.',
-          'warning'
-        );
-      }
-
-      const previewUrl = typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl 
-        ? DMCApp.formatDrivePreviewUrl(fileUrl) 
-        : fileUrl;
-      const win = window.open(previewUrl, '_blank', 'noopener,noreferrer');
-      if (win) {
-        try { win.opener = null; } catch (e) {}
-      }
-
-      if (typeof DMCApp !== 'undefined' && DMCApp.showToast && !(DMCApp.isFolderUrl && DMCApp.isFolderUrl(fileUrl))) {
-        DMCApp.showToast(getLang() === 'ar' ? 'جاري فتح معاينة الملف المستقلة...' : 'Opening single file preview...', 'info');
+      if (typeof DMCApp !== 'undefined' && DMCApp.openSingleFile) {
+        DMCApp.openSingleFile(fileUrl);
+      } else {
+        const previewUrl = typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl 
+          ? DMCApp.formatDrivePreviewUrl(fileUrl) 
+          : fileUrl;
+        const win = window.open(previewUrl, '_blank', 'noopener,noreferrer');
+        if (win) {
+          try { win.opener = null; } catch (e) {}
+        }
       }
       return;
     }

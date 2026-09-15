@@ -94,6 +94,113 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+/**
+ * Resolves cloud storage links (OneDrive, Google Drive, SharePoint) into clean,
+ * single-file isolated preview URLs that never show other files or folder directories.
+ */
+async function resolveToIsolatedPreviewUrl(url) {
+  if (!url) return '';
+  let cleanUrl = String(url).trim();
+
+  // Add https:// if missing
+  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://') &&
+      !cleanUrl.startsWith('data:') && !cleanUrl.startsWith('blob:')) {
+    if (cleanUrl.includes('.') && !cleanUrl.includes(' ')) {
+      cleanUrl = 'https://' + cleanUrl;
+    }
+  }
+
+  // 1. Google Drive single file
+  const gDriveMatch = cleanUrl.match(/drive\.google\.com\/(?:file\/d\/([a-zA-Z0-9_-]+)|(?:open|uc)\?(?:[^\s]*&)?id=([a-zA-Z0-9_-]+))/i);
+  if (gDriveMatch) {
+    const fileId = gDriveMatch[1] || gDriveMatch[2];
+    return `https://drive.google.com/file/d/${fileId}/preview`;
+  }
+
+  // 2. Google Docs / Sheets / Slides
+  const gDocsMatch = cleanUrl.match(/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([a-zA-Z0-9_-]+)/i);
+  if (gDocsMatch) {
+    return `https://docs.google.com/${gDocsMatch[1]}/d/${gDocsMatch[2]}/preview`;
+  }
+
+  // 3. Google Drive folder with specific fileId
+  const gFolderFileMatch = cleanUrl.match(/drive\.google\.com\/.*?folders\/[a-zA-Z0-9_-]+.*?[?&]fileId=([a-zA-Z0-9_-]+)/i);
+  if (gFolderFileMatch) {
+    return `https://drive.google.com/file/d/${gFolderFileMatch[1]}/preview`;
+  }
+
+  // 4. Microsoft OneDrive short sharing link (1drv.ms)
+  if (/1drv\.ms/i.test(cleanUrl)) {
+    try {
+      const resp = await fetch(cleanUrl, { redirect: 'manual' });
+      const loc = resp.headers.get('location') || '';
+      if (loc) {
+        const u = new URL(loc);
+        const resid = u.searchParams.get('resid');
+        const redeem = u.searchParams.get('redeem');
+        const authkey = u.searchParams.get('authkey');
+        if (resid) {
+          let embed = `https://onedrive.live.com/embed?resid=${encodeURIComponent(resid)}`;
+          if (redeem) embed += `&redeem=${encodeURIComponent(redeem)}`;
+          if (authkey) embed += `&authkey=${encodeURIComponent(authkey)}`;
+          embed += '&em=2';
+          return embed;
+        }
+        // If the location itself has action=embedview
+        if (!loc.includes('action=embedview') && !loc.includes('embed')) {
+          return loc + (loc.includes('?') ? '&' : '?') + 'action=embedview';
+        }
+        return loc;
+      }
+    } catch (e) {
+      console.warn('1drv.ms redirect resolution warning:', e.message);
+    }
+  }
+
+  // 5. OneDrive personal link with resid
+  if (cleanUrl.includes('onedrive.live.com')) {
+    const residMatch = cleanUrl.match(/resid=([A-Z0-9!.]+)/i);
+    const redeemMatch = cleanUrl.match(/redeem=([^&\s]+)/i);
+    const authkeyMatch = cleanUrl.match(/authkey=([^&\s]+)/i);
+    if (residMatch) {
+      let embedUrl = `https://onedrive.live.com/embed?resid=${encodeURIComponent(residMatch[1])}`;
+      if (redeemMatch) embedUrl += `&redeem=${encodeURIComponent(redeemMatch[1])}`;
+      if (authkeyMatch) embedUrl += `&authkey=${encodeURIComponent(authkeyMatch[1])}`;
+      embedUrl += '&em=2';
+      return embedUrl;
+    }
+    if (cleanUrl.includes('view.aspx')) {
+      return cleanUrl.replace('view.aspx', 'embed');
+    }
+  }
+
+  // 6. Microsoft SharePoint
+  if (cleanUrl.includes('.sharepoint.com') && !cleanUrl.includes('/:f:/')) {
+    if (!cleanUrl.includes('action=embedview') && !cleanUrl.includes('action=embed')) {
+      return cleanUrl + (cleanUrl.includes('?') ? '&' : '?') + 'action=embedview';
+    }
+  }
+
+  // 7. Dropbox direct file
+  if (cleanUrl.includes('dropbox.com')) {
+    return cleanUrl.replace('dl=0', 'raw=1').replace('dl=1', 'raw=1');
+  }
+
+  return cleanUrl;
+}
+
+// Drive preview resolution API
+app.get('/api/drive/resolve', async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) return res.status(400).json({ error: 'Missing url query parameter' });
+  try {
+    const previewUrl = await resolveToIsolatedPreviewUrl(targetUrl);
+    res.json({ original: targetUrl, previewUrl });
+  } catch (err) {
+    res.json({ original: targetUrl, previewUrl: targetUrl });
+  }
+});
+
 function normalizeDigits(str) {
   if (!str) return '';
   const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];

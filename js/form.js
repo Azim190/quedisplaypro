@@ -145,18 +145,14 @@ const DMCForm = {
       alert(typeof getLang === 'function' && getLang() === 'ar' ? 'يرجى كتابة أو لصق رابط الملف أولاً لاختباره' : 'Please enter a file link first.');
       return;
     }
-    if (typeof DMCApp !== 'undefined' && DMCApp.isFolderUrl && DMCApp.isFolderUrl(url)) {
-      DMCApp.showToast(
-        typeof getLang === 'function' && getLang() === 'ar'
-          ? '⚠️ الرابط المدخل يشير إلى مجلد وليس ملفاً مباشراً. يُرجى نسخ رابط الملف نفسه لعرضه بشكل مستقل دون إظهار المجلد.'
-          : '⚠️ The entered link points to a folder. Please paste a direct file link to isolate the document preview without showing folder contents.',
-        'warning'
-      );
+    if (typeof DMCApp !== 'undefined' && DMCApp.openSingleFile) {
+      DMCApp.openSingleFile(url);
+    } else {
+      const previewUrl = typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl
+        ? DMCApp.formatDrivePreviewUrl(url)
+        : url;
+      window.open(previewUrl, '_blank', 'noopener,noreferrer');
     }
-    const previewUrl = typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl
-      ? DMCApp.formatDrivePreviewUrl(url)
-      : url;
-    window.open(previewUrl, '_blank', 'noopener,noreferrer');
   },
 
   openNew() {

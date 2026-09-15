@@ -304,15 +304,35 @@ const DMCApp = {
   },
 
   /**
+   * Returns true if the URL points to a cloud storage FOLDER (not a specific file).
+   * Used to warn users that they should save a direct file link instead.
+   */
+  isFolderUrl(url) {
+    if (!url) return false;
+    const u = String(url).trim();
+    // Google Drive folder URL (no fileId in query string)
+    if (/drive\.google\.com\/(?:drive\/(?:u\/\d+\/)?folders\/)/i.test(u) && !/[?&](?:fileId)=/i.test(u)) return true;
+    // OneDrive personal folder navigation URL (onedrive.live.com/?id= without resid)
+    if (u.includes('onedrive.live.com') && u.match(/[?&]id=/i) && !u.includes('resid=')) return true;
+    // SharePoint folder path pattern (/:f:/)
+    if (u.includes('.sharepoint.com') && u.includes('/:f:/')) return true;
+    return false;
+  },
+
+  /**
    * Transforms Drive URLs (Google Drive, OneDrive, SharePoint, Docs) to clean,
-   * single-file isolated preview mode, preventing folder directory listings or other files.
+   * single-file isolated preview mode, preventing folder directory listings.
+   *
+   * Returns the original URL unchanged for folder-type links so callers can
+   * detect them with isFolderUrl() and show appropriate warnings.
    */
   formatDrivePreviewUrl(url) {
     if (!url) return '';
     let cleanUrl = String(url).trim();
 
     // Add protocol if missing
-    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://') && !cleanUrl.startsWith('data:') && !cleanUrl.startsWith('blob:')) {
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://') &&
+        !cleanUrl.startsWith('data:') && !cleanUrl.startsWith('blob:')) {
       if (cleanUrl.includes('.') && !cleanUrl.includes(' ')) {
         cleanUrl = 'https://' + cleanUrl;
       }
@@ -325,47 +345,72 @@ const DMCApp = {
       return `https://drive.google.com/file/d/${fileId}/preview`;
     }
 
-    // 2. Google Docs / Sheets / Slides
+    // 2. Google Docs / Sheets / Slides — convert to /preview
     const gDocsMatch = cleanUrl.match(/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([a-zA-Z0-9_-]+)/i);
     if (gDocsMatch) {
-      const docType = gDocsMatch[1];
-      const docId = gDocsMatch[2];
-      return `https://docs.google.com/${docType}/d/${docId}/preview`;
+      return `https://docs.google.com/${gDocsMatch[1]}/d/${gDocsMatch[2]}/preview`;
     }
 
-    // 3. Google Drive Folder: /drive/folders/ID or /drive/u/0/folders/ID
+    // 3. Google Drive Folder — try to extract a specific fileId, otherwise return as-is
     const gFolderMatch = cleanUrl.match(/drive\.google\.com\/(?:drive\/(?:u\/\d+\/)?folders\/([a-zA-Z0-9_-]+))/i);
     if (gFolderMatch) {
-      const folderId = gFolderMatch[1];
-      const innerFileMatch = cleanUrl.match(/[?&](?:fileId|id)=([a-zA-Z0-9_-]+)/i);
+      const innerFileMatch = cleanUrl.match(/[?&]fileId=([a-zA-Z0-9_-]+)/i);
       if (innerFileMatch) {
         return `https://drive.google.com/file/d/${innerFileMatch[1]}/preview`;
       }
-      return `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
+      // Pure folder link — caller should warn the user via isFolderUrl()
+      return cleanUrl;
     }
 
-    // 4. Microsoft OneDrive
+    // 4. OneDrive short sharing link (1drv.ms) — browser handles redirect to the file
+    if (/1drv\.ms/i.test(cleanUrl)) {
+      return cleanUrl;
+    }
+
+    // 5. OneDrive personal navigation URL (onedrive.live.com/?id=...)
     if (cleanUrl.includes('onedrive.live.com')) {
+      // Try to find a resid (specific file resource ID) for a proper embed URL
+      const residMatch = cleanUrl.match(/resid=([A-Z0-9!.]+)/i);
+      const authkeyMatch = cleanUrl.match(/authkey=([^&\s]+)/i);
+      if (residMatch) {
+        let embedUrl = `https://onedrive.live.com/embed?resid=${encodeURIComponent(residMatch[1])}`;
+        if (authkeyMatch) embedUrl += `&authkey=${encodeURIComponent(authkeyMatch[1])}`;
+        embedUrl += '&em=2';
+        return embedUrl;
+      }
+      // view.aspx → embed (SharePoint personal site files)
       if (cleanUrl.includes('view.aspx')) {
-        cleanUrl = cleanUrl.replace('view.aspx', 'embed');
-      } else if (!cleanUrl.includes('action=embedview') && !cleanUrl.includes('embed')) {
+        return cleanUrl.replace('view.aspx', 'embed');
+      }
+      // Plain folder navigation — return as-is, caller warns via isFolderUrl()
+      if (cleanUrl.match(/[?&]id=/i) && !cleanUrl.includes('action=embedview')) {
+        return cleanUrl; // Folder URL, can't isolate file
+      }
+      // Add embedview for other OneDrive URLs
+      if (!cleanUrl.includes('action=embedview') && !cleanUrl.includes('embed')) {
         cleanUrl += (cleanUrl.includes('?') ? '&' : '?') + 'action=embedview';
       }
       return cleanUrl;
     }
 
-    // 5. Microsoft SharePoint
+    // 6. Microsoft SharePoint — detect folder (:f:) vs file (:b:, :w:, :x:, :p:, etc.)
     if (cleanUrl.includes('.sharepoint.com')) {
+      // Folder links (:f:) can't be isolated to a single file
+      if (cleanUrl.includes('/:f:/')) return cleanUrl; // caller warns via isFolderUrl()
       if (!cleanUrl.includes('action=embedview') && !cleanUrl.includes('action=embed')) {
         cleanUrl += (cleanUrl.includes('?') ? '&' : '?') + 'action=embedview';
       }
       return cleanUrl;
     }
 
-    // 6. Dropbox: convert dl=0 to raw=1 for direct viewing
-    if (cleanUrl.includes('dropbox.com')) {
-      cleanUrl = cleanUrl.replace('dl=0', 'raw=1');
+    // 7. Office Web Apps viewer — already in proper format
+    if (cleanUrl.includes('view.officeapps.live.com')) {
       return cleanUrl;
+    }
+
+    // 8. Dropbox: convert dl=0 to raw=1 for direct viewing
+    if (cleanUrl.includes('dropbox.com')) {
+      return cleanUrl.replace('dl=0', 'raw=1').replace('dl=1', 'raw=1');
     }
 
     return cleanUrl;
@@ -378,4 +423,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.DMCApp = DMCApp;
-

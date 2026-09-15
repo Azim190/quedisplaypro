@@ -258,6 +258,14 @@ const DMCContracts = {
       alert(typeof getLang === 'function' && getLang() === 'ar' ? 'يرجى كتابة أو لصق رابط الملف أولاً لاختباره' : 'Please enter a file link first.');
       return;
     }
+    if (typeof DMCApp !== 'undefined' && DMCApp.isFolderUrl && DMCApp.isFolderUrl(url)) {
+      DMCApp.showToast(
+        typeof getLang === 'function' && getLang() === 'ar'
+          ? '⚠️ الرابط المدخل يشير إلى مجلد وليس ملفاً مباشراً. يُرجى نسخ رابط الملف نفسه لعرضه بشكل مستقل دون إظهار المجلد.'
+          : '⚠️ The entered link points to a folder. Please paste a direct file link to isolate the document preview without showing folder contents.',
+        'warning'
+      );
+    }
     const previewUrl = typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl
       ? DMCApp.formatDrivePreviewUrl(url)
       : url;
@@ -442,14 +450,24 @@ const DMCContracts = {
       return;
     }
 
+    // Warn if this looks like a folder URL (not a specific file)
+    if (typeof DMCApp !== 'undefined' && DMCApp.isFolderUrl && DMCApp.isFolderUrl(contract.fileLink)) {
+      DMCApp.showToast(
+        getLang() === 'ar'
+          ? '⚠️ الرابط المحفوظ يشير إلى مجلد وليس ملفاً. سيتم فتح المجلد — يُرجى حفظ رابط الملف المباشر.'
+          : '⚠️ The saved link points to a folder, not a specific file. Please save a direct file link instead.',
+        'warning'
+      );
+    }
+
     const previewUrl = typeof DMCApp !== 'undefined' && DMCApp.formatDrivePreviewUrl
       ? DMCApp.formatDrivePreviewUrl(contract.fileLink)
       : contract.fileLink;
 
-    if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
-      DMCApp.showToast(getLang() === 'ar' ? 'جاري فتح معاينة الملف المستقلة في الدرايف...' : 'Opening single file preview in Drive...', 'info');
+    if (typeof DMCApp !== 'undefined' && DMCApp.showToast && !(DMCApp.isFolderUrl && DMCApp.isFolderUrl(contract.fileLink))) {
+      DMCApp.showToast(getLang() === 'ar' ? 'جاري فتح معاينة الملف المستقلة...' : 'Opening single file preview...', 'info');
     }
-    const win = window.open(previewUrl, '_blank');
+    const win = window.open(previewUrl, '_blank', 'noopener,noreferrer');
     if (win) { try { win.opener = null; } catch (e) {} }
   },
 

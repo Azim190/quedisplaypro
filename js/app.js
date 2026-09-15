@@ -32,7 +32,22 @@ const DMCApp = {
     if (typeof DMCReports !== 'undefined') DMCReports.init();
     if (typeof DMCContracts !== 'undefined') DMCContracts.init();
 
-    // 6. Router Setup
+    // 6. Router Setup — robust direct click interception on every sidebar link
+    // We intercept clicks instead of relying solely on hashchange because
+    // some browsers don't fire hashchange when the sidebar parent has overflow:hidden.
+    document.querySelectorAll('.sidebar-nav .nav-item[href^="#"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = link.getAttribute('href');
+        if (window.location.hash !== target) {
+          window.location.hash = target;
+        }
+        // Always call routing explicitly
+        this.handleRouting();
+      });
+    });
+
+    // Keep hashchange as a safety fallback (browser back/forward, direct URL changes)
     window.addEventListener('hashchange', () => this.handleRouting());
     this.handleRouting();
   },
@@ -189,20 +204,37 @@ const DMCApp = {
       }
     });
 
-    // Toggle views
+    // Always remove any lingering modal-open class on navigation
+    document.body.classList.remove('modal-open');
+
+    // Dismiss any open modals on navigation
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+
+    // Toggle views using CSS class (avoids inline-style specificity conflicts)
     document.querySelectorAll('.page-view').forEach(view => {
-      view.style.display = 'none';
+      view.classList.add('page-view-hidden');
+      view.style.display = '';
     });
 
     const targetView = document.getElementById(`view-${viewName}`);
     if (targetView) {
-      targetView.style.display = 'block';
+      targetView.classList.remove('page-view-hidden');
+      targetView.style.display = '';
       if (viewName === 'contracts' && typeof DMCContracts !== 'undefined') {
         DMCContracts.render();
       }
+      if (viewName === 'quotations' && typeof DMCQuotations !== 'undefined') {
+        DMCQuotations.render();
+      }
+      if (viewName === 'dashboard' && typeof DMCDashboard !== 'undefined') {
+        DMCDashboard.renderAll();
+      }
+      if (viewName === 'audit' && typeof DMCAudit !== 'undefined') {
+        DMCAudit.render();
+      }
     } else {
       const defaultView = document.getElementById('view-dashboard');
-      if (defaultView) defaultView.style.display = 'block';
+      if (defaultView) defaultView.classList.remove('page-view-hidden');
     }
 
     // Close mobile sidebar on route switch

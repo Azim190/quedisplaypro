@@ -492,6 +492,13 @@
   overflow-x: hidden;
 }
 
+/* View routing: hide inactive views with maximum specificity */
+.page-view.page-view-hidden,
+.page-view-hidden {
+  display: none !important;
+  visibility: hidden !important;
+}
+
 .page-header {
   display: flex;
   align-items: center;
@@ -1108,16 +1115,22 @@
   .sidebar-toggle-btn {
     display: block;
   }
-  .sidebar-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-  }
+/* Mobile Sidebar Backdrop */
+.sidebar-backdrop {
+  display: none !important;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  pointer-events: none;
+}
+
+@media (max-width: 992px) {
   .sidebar-backdrop.show {
-    display: block;
+    display: block !important;
+    pointer-events: auto;
   }
+}
   .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

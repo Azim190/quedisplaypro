@@ -417,10 +417,28 @@ const DMCContracts = {
 
   openFile(id) {
     const contract = DMCStore.getContractById(id);
-    if (!contract || !contract.fileLink) {
+    if (!contract) {
       if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
-        DMCApp.showToast(getLang() === 'ar' ? 'لا يوجد رابط ملف مسجل لهذا العقد' : 'No document link registered for this contract', 'warning');
+        DMCApp.showToast(getLang() === 'ar' ? 'العقد غير موجود' : 'Contract not found', 'error');
       }
+      return;
+    }
+
+    if (!contract.fileLink) {
+      // No link – prompt user to add one via the edit modal
+      const msgAr = 'لا يوجد رابط سحابي مسجل لهذا العقد. يرجى إدخال رابط الملف.';
+      const msgEn = 'No cloud Drive link registered for this contract yet. Please enter the document link.';
+      if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+        DMCApp.showToast(getLang() === 'ar' ? msgAr : msgEn, 'warning');
+      }
+      DMCContracts.openEdit(id);
+      setTimeout(() => {
+        const linkInput = document.getElementById('contract-form-file-link');
+        if (linkInput) {
+          linkInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          linkInput.focus();
+        }
+      }, 300);
       return;
     }
 
@@ -431,7 +449,8 @@ const DMCContracts = {
     if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
       DMCApp.showToast(getLang() === 'ar' ? 'جاري فتح معاينة الملف المستقلة في الدرايف...' : 'Opening single file preview in Drive...', 'info');
     }
-    window.open(previewUrl, '_blank', 'noopener,noreferrer');
+    const win = window.open(previewUrl, '_blank');
+    if (win) { try { win.opener = null; } catch (e) {} }
   },
 
   render() {

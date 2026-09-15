@@ -388,6 +388,7 @@ const DMCQuotations = {
         ? DMCApp.formatDrivePreviewUrl(fileUrl) 
         : fileUrl;
 
+    if (fileUrl && fileUrl.trim().length > 0) {
       if (cloudBtn) {
         cloudBtn.style.display = 'inline-flex';
         cloudBtn.onclick = () => window.open(previewUrl, '_blank', 'noopener,noreferrer');

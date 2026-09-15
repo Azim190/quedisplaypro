@@ -58,7 +58,7 @@
 
         <!-- Quotations Link -->
         <a href="#quotations" class="nav-item">
-          <i class="fa-solid fa-file-contract"></i>
+          <i class="fa-solid fa-file-lines"></i>
           <span data-i18n="nav_quotations">Quotations</span>
           <span class="nav-item-badge" id="sidebar-total-badge">0</span>
         </a>
@@ -67,6 +67,19 @@
         <a href="javascript:void(0)" class="nav-item nav-item-action btn-trigger-add-quotation">
           <i class="fa-solid fa-circle-plus"></i>
           <span data-i18n="nav_add_quotation">Add Quotation</span>
+        </a>
+
+        <!-- Contracts Link -->
+        <a href="#contracts" class="nav-item" id="nav-item-contracts">
+          <i class="fa-solid fa-file-signature"></i>
+          <span data-i18n="nav_contracts">Contracts</span>
+          <span class="nav-item-badge" id="sidebar-contracts-badge">0</span>
+        </a>
+
+        <!-- Add Contract Button -->
+        <a href="javascript:void(0)" class="nav-item nav-item-action btn-trigger-add-contract">
+          <i class="fa-solid fa-circle-plus"></i>
+          <span data-i18n="nav_add_contract">Add Contract</span>
         </a>
 
         <!-- Section: Analytics & Archive -->
@@ -596,6 +609,33 @@
             <div id="table-showing-count">1 - 10 / 248</div>
             <div class="pagination-controls" id="table-pagination-controls">
               <!-- Dynamically Rendered -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           VIEW: CONTRACTS ARCHIVE
+           =================================================================== -->
+      <section id="view-contracts" class="page-view page-content" style="display: none;">
+        <div class="page-header d-flex align-center justify-between flex-wrap gap-2">
+          <h1 class="page-title" data-i18n="nav_contracts">Contracts Archive</h1>
+          <button type="button" class="btn btn-gold btn-trigger-add-contract">
+            <i class="fa-solid fa-circle-plus"></i>
+            <span data-i18n="nav_add_contract">Add Contract</span>
+          </button>
+        </div>
+
+        <div class="table-section">
+          <div class="table-responsive">
+            <div style="padding: 3.5rem 1.5rem; text-align: center; color: var(--text-muted);">
+              <i class="fa-solid fa-file-signature" style="font-size: 3.5rem; color: var(--brand-gold); opacity: 0.75; margin-bottom: 1.25rem; display: block;"></i>
+              <h3 style="font-weight: 800; color: var(--text-heading); margin-bottom: 0.5rem; font-size: 1.25rem;" data-i18n="contracts_empty_title">أرشيف العقود الهندسية</h3>
+              <p style="font-size: 0.92rem; max-width: 520px; margin: 0 auto 1.5rem; line-height: 1.6;" data-i18n="contracts_empty_desc">يمكنك إدارة وتوثيق العقود المعتمدة الخاصة بالمشاريع الهندسية وربطها بعروض الأسعار المؤرشفة.</p>
+              <button type="button" class="btn btn-outline btn-trigger-add-contract">
+                <i class="fa-solid fa-plus"></i>
+                <span data-i18n="nav_add_contract">Add Contract</span>
+              </button>
             </div>
           </div>
         </div>

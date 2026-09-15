@@ -142,6 +142,16 @@ const DMCApp = {
       });
     });
 
+    // Add Contract Buttons
+    document.querySelectorAll('.btn-trigger-add-contract').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const isAr = typeof getLang === 'function' && getLang() === 'ar';
+        if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+          DMCApp.showToast(isAr ? 'نظام أرشفة وتوثيق العقود قيد الإعداد والتفعيل' : 'Contracts archive module coming soon', 'info');
+        }
+      });
+    });
+
     // Logout Buttons
     document.querySelectorAll('.btn-trigger-logout').forEach(btn => {
       btn.addEventListener('click', () => {

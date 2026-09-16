@@ -1,11 +1,13 @@
 /**
  * DMC Dar Makkah Engineering Consultancy
- * Interactive Dashboard & Chart.js Visualizations
- * Dynamic KPI Cards, Filter Synchronization, and Current Month Quotations
+ * Interactive Dual Dashboard & Chart.js Visualizations
+ * Dynamic Switcher between Quotations Dashboard and Contracts Dashboard
+ * Real-time KPI Cards, Filter Synchronization, Visual Charts & Tables
  */
 
 const DMCDashboard = {
   charts: {},
+  currentMode: 'quotations', // 'quotations' | 'contracts'
   currentFilters: {
     branch: 'all',
     status: 'all',
@@ -19,12 +21,14 @@ const DMCDashboard = {
 
   init() {
     this.bindFilterEvents();
+    this.updateModeUI();
     this.renderAll();
 
     // Re-render when data or language changes
     window.addEventListener('dmc-data-changed', () => this.renderAll());
     window.addEventListener('dmc-language-changed', () => {
       this.populateFilterDropdowns();
+      this.updateModeUI();
       this.renderAll();
     });
 
@@ -41,8 +45,201 @@ const DMCDashboard = {
     });
   },
 
+  /**
+   * Switch between Quotations and Contracts dashboard mode
+   * @param {'quotations' | 'contracts'} mode 
+   */
+  switchMode(mode) {
+    if (this.currentMode === mode) return;
+    this.currentMode = mode;
+    this.updateModeUI();
+    this.populateFilterDropdowns();
+    this.renderAll();
+
+    if (typeof DMCApp !== 'undefined' && DMCApp.showToast) {
+      const isAr = getLang() === 'ar';
+      DMCApp.showToast(
+        mode === 'contracts'
+          ? (isAr ? 'تم الانتقال إلى لوحة تحكم العقود' : 'Switched to Contracts Dashboard')
+          : (isAr ? 'تم الانتقال إلى لوحة تحكم عروض الأسعار' : 'Switched to Quotations Dashboard'),
+        'info'
+      );
+    }
+  },
+
+  /**
+   * Toggle between the two dashboards with switch icon
+   */
+  toggleMode() {
+    this.switchMode(this.currentMode === 'quotations' ? 'contracts' : 'quotations');
+  },
+
+  /**
+   * Update texts, icons, badges, and titles matching current dashboard mode
+   */
+  updateModeUI() {
+    const isAr = getLang() === 'ar';
+    const isContracts = this.currentMode === 'contracts';
+
+    // Switcher buttons state
+    const btnQuot = document.getElementById('dash-switch-quotations');
+    const btnCont = document.getElementById('dash-switch-contracts');
+    if (btnQuot) btnQuot.classList.toggle('active', !isContracts);
+    if (btnCont) btnCont.classList.toggle('active', isContracts);
+
+    // Switch icon rotation animation
+    const iconAnim = document.getElementById('dash-switch-icon-anim');
+    if (iconAnim) {
+      iconAnim.style.transform = isContracts ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    // Header title
+    const headingEl = document.getElementById('dashboard-main-heading');
+    if (headingEl) {
+      headingEl.textContent = isContracts
+        ? (isAr ? 'لوحة تحكم العقود الهندسية' : 'Contracts Dashboard')
+        : (isAr ? 'لوحة تحكم عروض الأسعار' : 'Quotations Dashboard');
+    }
+
+    // Header mode badge indicator
+    const badgeIndicator = document.getElementById('dashboard-mode-indicator');
+    const badgeIcon = document.getElementById('dashboard-mode-badge-icon');
+    const badgeText = document.getElementById('dashboard-mode-badge-text');
+    if (badgeText) {
+      badgeText.textContent = isContracts
+        ? (isAr ? 'لوحة العقود' : 'Contracts')
+        : (isAr ? 'عروض الأسعار' : 'Quotations');
+    }
+    if (badgeIcon) {
+      badgeIcon.className = isContracts ? 'fa-solid fa-file-contract' : 'fa-solid fa-file-invoice';
+    }
+    if (badgeIndicator) {
+      badgeIndicator.style.background = isContracts ? 'rgba(16, 185, 129, 0.15)' : 'rgba(212, 175, 55, 0.15)';
+      badgeIndicator.style.color = isContracts ? '#10B981' : 'var(--brand-gold)';
+      badgeIndicator.style.borderColor = isContracts ? 'rgba(16, 185, 129, 0.3)' : 'rgba(212, 175, 55, 0.3)';
+    }
+
+    // KPI labels
+    const kpiTotalLbl = document.getElementById('kpi-lbl-total');
+    if (kpiTotalLbl) {
+      kpiTotalLbl.textContent = isContracts
+        ? (isAr ? 'إجمالي العقود' : 'Total Contracts')
+        : (isAr ? 'إجمالي عروض الأسعار' : 'Total Quotations');
+    }
+    const kpiTotalIcon = document.getElementById('kpi-icon-total');
+    if (kpiTotalIcon) {
+      kpiTotalIcon.className = isContracts ? 'fa-solid fa-file-contract' : 'fa-regular fa-file-lines';
+    }
+
+    const kpiMonthLbl = document.getElementById('kpi-lbl-month');
+    if (kpiMonthLbl) {
+      kpiMonthLbl.textContent = isContracts
+        ? (isAr ? 'عقود هذا الشهر' : 'Contracts This Month')
+        : (isAr ? 'عروض هذا الشهر' : 'This Month');
+    }
+
+    const kpiHighestLbl = document.getElementById('kpi-lbl-highest');
+    if (kpiHighestLbl) {
+      kpiHighestLbl.textContent = isContracts
+        ? (isAr ? 'أعلى قيمة عقد' : 'Highest Value Contract')
+        : (isAr ? 'أعلى قيمة لعرض' : 'Highest Value');
+    }
+
+    // Chart titles
+    const chartBranchTitle = document.getElementById('chart-title-branch');
+    if (chartBranchTitle) {
+      chartBranchTitle.textContent = isContracts
+        ? (isAr ? 'العقود حسب الفروع' : 'Contracts by Branch')
+        : (isAr ? 'عروض الأسعار حسب الفروع' : 'Quotations by Branch');
+    }
+
+    const chartStatusTitle = document.getElementById('chart-title-status');
+    if (chartStatusTitle) {
+      chartStatusTitle.textContent = isContracts
+        ? (isAr ? 'العقود حسب الحالة' : 'Contracts by Status')
+        : (isAr ? 'عروض الأسعار حسب الحالة' : 'Quotations by Status');
+    }
+
+    const chartTypeTitle = document.getElementById('chart-title-type');
+    if (chartTypeTitle) {
+      chartTypeTitle.textContent = isContracts
+        ? (isAr ? 'العقود حسب نوع العقد' : 'Contracts by Type')
+        : (isAr ? 'عروض الأسعار حسب النوع' : 'Quotations by Type');
+    }
+
+    const chartMonthlyTitle = document.getElementById('chart-title-monthly');
+    if (chartMonthlyTitle) {
+      chartMonthlyTitle.textContent = isContracts
+        ? (isAr ? 'مخطط اتجاه العقود الشهرية' : 'Monthly Contracts Trend')
+        : (isAr ? 'مخطط اتجاه العروض الشهرية' : 'Monthly Quotations Trend');
+    }
+
+    const chartValTitle = document.getElementById('chart-title-value');
+    if (chartValTitle) {
+      chartValTitle.textContent = isContracts
+        ? (isAr ? 'القيمة الإجمالية للعقود' : 'Contracts Value')
+        : (isAr ? 'قيمة عروض الأسعار' : 'Quotation Value');
+    }
+
+    const valSummaryTitle = document.getElementById('val-summary-title');
+    if (valSummaryTitle) {
+      valSummaryTitle.textContent = isContracts
+        ? (isAr ? 'إجمالي قيمة العقود' : 'Total Contracts Value')
+        : (isAr ? 'إجمالي قيمة عروض الأسعار' : 'Total Quotation Value');
+    }
+
+    const topItemLabel = document.getElementById('top-item-label');
+    if (topItemLabel) {
+      topItemLabel.textContent = isContracts
+        ? (isAr ? 'أعلى عقد قيمة' : 'Top Value Contract')
+        : (isAr ? 'أعلى عرض قيمة' : 'Top Value Quotation');
+    }
+
+    // Table section
+    const tableTitle = document.getElementById('dash-month-table-title');
+    if (tableTitle) {
+      tableTitle.textContent = isContracts
+        ? (isAr ? 'أحدث العقود المسجلة' : 'Recent Contracts Registered')
+        : (isAr ? 'عروض الأسعار المنشأة هذا الشهر' : 'Quotations Created This Month');
+    }
+
+    const tableSubtitle = document.getElementById('dash-month-table-subtitle');
+    if (tableSubtitle) {
+      tableSubtitle.textContent = isContracts
+        ? (isAr ? 'قائمة بالعقود الهندسية المسجلة والموثقة في الأرشيف' : 'List of engineering contracts archived in the system')
+        : (isAr ? 'قائمة بعروض الأسعار المؤرشفة رسمياً خلال الشهر الحالي' : 'List of quotations officially archived during current month');
+    }
+
+    const tableViewAll = document.getElementById('dash-month-table-view-all');
+    if (tableViewAll) {
+      tableViewAll.setAttribute('href', isContracts ? '#contracts' : '#quotations');
+    }
+
+    const colCode = document.getElementById('dash-col-code');
+    if (colCode) {
+      colCode.textContent = isContracts
+        ? (isAr ? 'رقم العقد' : 'Contract No.')
+        : (isAr ? 'رقم العرض' : 'Quotation No.');
+    }
+
+    const colType = document.getElementById('dash-col-type');
+    if (colType) {
+      colType.textContent = isContracts
+        ? (isAr ? 'نوع العقد' : 'Contract Type')
+        : (isAr ? 'نوع العرض' : 'Type');
+    }
+
+    const colDate = document.getElementById('dash-col-date');
+    if (colDate) {
+      colDate.textContent = isContracts
+        ? (isAr ? 'تاريخ التوقيع' : 'Signing Date')
+        : (isAr ? 'التاريخ' : 'Date');
+    }
+  },
+
   populateFilterDropdowns() {
     const isAr = getLang() === 'ar';
+    const isContracts = this.currentMode === 'contracts';
     const branches = DMCStore.getBranches();
     const statuses = DMCStore.getStatuses();
     const types = DMCStore.getQuotationTypes();
@@ -69,7 +266,10 @@ const DMCDashboard = {
     const typeSelect = document.getElementById('filter-type');
     if (typeSelect) {
       const currentVal = typeSelect.value;
-      typeSelect.innerHTML = `<option value="all">${t('filter_all_types')}</option>` +
+      const allTypesLabel = isContracts
+        ? (isAr ? 'جميع أنواع العقود' : 'All Contract Types')
+        : t('filter_all_types');
+      typeSelect.innerHTML = `<option value="all">${allTypesLabel}</option>` +
         types.map(tp => `<option value="${tp.id}">${isAr ? tp.nameAr : tp.nameEn}</option>`).join('');
       typeSelect.value = currentVal || 'all';
     }
@@ -215,12 +415,422 @@ const DMCDashboard = {
     }
   },
 
+  /**
+   * Main render method dynamically delegates to Quotations or Contracts mode
+   */
   renderAll() {
-    const quotations = DMCStore.getQuotations(this.currentFilters);
-    this.renderKPIs(quotations);
-    this.renderCharts(quotations);
-    this.renderMonthTable(quotations);
+    this.updateModeUI();
+
+    if (this.currentMode === 'contracts') {
+      const allContracts = DMCStore.getContracts ? DMCStore.getContracts() : [];
+      const filtered = this.filterContracts(allContracts);
+      this.renderContractsKPIs(filtered);
+      this.renderContractsCharts(filtered);
+      this.renderContractsTable(filtered);
+    } else {
+      const quotations = DMCStore.getQuotations(this.currentFilters);
+      this.renderKPIs(quotations);
+      this.renderCharts(quotations);
+      this.renderMonthTable(quotations);
+    }
   },
+
+  // =========================================================================
+  // CONTRACTS FILTERING & RENDERING
+  // =========================================================================
+
+  filterContracts(contracts) {
+    const f = this.currentFilters;
+    let items = Array.isArray(contracts) ? [...contracts] : [];
+
+    if (f.branch && f.branch !== 'all') {
+      items = items.filter(c => c.branchId === f.branch || c.branch_id === f.branch);
+    }
+    if (f.status && f.status !== 'all') {
+      items = items.filter(c => c.status === f.status);
+    }
+    if (f.type && f.type !== 'all') {
+      items = items.filter(c => (c.contractTypeId || c.contract_type_id) === f.type);
+    }
+    if (f.query && f.query.trim()) {
+      const q = f.query.trim().toLowerCase();
+      items = items.filter(item => (
+        (item.contractNo && item.contractNo.toLowerCase().includes(q)) ||
+        (item.contract_no && item.contract_no.toLowerCase().includes(q)) ||
+        (item.titleAr && item.titleAr.toLowerCase().includes(q)) ||
+        (item.title_ar && item.title_ar.toLowerCase().includes(q)) ||
+        (item.titleEn && item.titleEn.toLowerCase().includes(q)) ||
+        (item.clientNameAr && item.clientNameAr.toLowerCase().includes(q)) ||
+        (item.client_name_ar && item.client_name_ar.toLowerCase().includes(q)) ||
+        (item.clientNameEn && item.clientNameEn.toLowerCase().includes(q)) ||
+        (item.projectNameAr && item.projectNameAr.toLowerCase().includes(q))
+      ));
+    }
+
+    if (f.dateFilter && f.dateFilter !== 'all') {
+      const now = new Date();
+      items = items.filter(item => {
+        const dateVal = item.signingDate || item.signing_date || item.createdAt || item.created_at;
+        if (!dateVal) return false;
+        const d = new Date(dateVal);
+        if (isNaN(d.getTime())) return false;
+
+        if (f.dateFilter === 'today') {
+          return d.toDateString() === now.toDateString();
+        } else if (f.dateFilter === 'this_week') {
+          const startOfWeek = new Date(now);
+          startOfWeek.setDate(now.getDate() - now.getDay());
+          startOfWeek.setHours(0, 0, 0, 0);
+          return d >= startOfWeek;
+        } else if (f.dateFilter === 'this_month') {
+          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        } else if (f.dateFilter === 'this_year') {
+          return d.getFullYear() === now.getFullYear();
+        } else if (f.dateFilter === 'custom_range') {
+          if (f.dateFrom && d < new Date(f.dateFrom + 'T00:00:00')) return false;
+          if (f.dateTo && d > new Date(f.dateTo + 'T23:59:59')) return false;
+          return true;
+        }
+        return true;
+      });
+    }
+
+    // Sort
+    if (f.sort === 'newest') {
+      items.sort((a, b) => new Date(b.signingDate || b.signing_date || b.createdAt || 0) - new Date(a.signingDate || a.signing_date || a.createdAt || 0));
+    } else if (f.sort === 'oldest') {
+      items.sort((a, b) => new Date(a.signingDate || a.signing_date || a.createdAt || 0) - new Date(b.signingDate || b.signing_date || b.createdAt || 0));
+    } else if (f.sort === 'highest') {
+      items.sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0));
+    } else if (f.sort === 'lowest') {
+      items.sort((a, b) => (Number(a.amount) || 0) - (Number(b.amount) || 0));
+    }
+
+    return items;
+  },
+
+  renderContractsKPIs(filteredContracts) {
+    const today = new Date();
+    const curYear = today.getFullYear();
+    const curMonth = today.getMonth();
+
+    // 1. Total
+    this.setKpiText('kpi-val-total', filteredContracts.length);
+
+    // Update sidebar badge
+    const allTotal = DMCStore.getContracts ? DMCStore.getContracts().length : filteredContracts.length;
+    const sidebarBadge = document.getElementById('sidebar-contracts-badge');
+    if (sidebarBadge) sidebarBadge.textContent = allTotal;
+
+    // 2. This Month
+    const thisMonthCount = filteredContracts.filter(c => {
+      const d = new Date(c.signingDate || c.signing_date || c.createdAt || c.created_at);
+      return !isNaN(d.getTime()) && d.getFullYear() === curYear && d.getMonth() === curMonth;
+    }).length;
+    this.setKpiText('kpi-val-month', thisMonthCount);
+
+    // Status counts
+    const approvedCount = filteredContracts.filter(c => c.status === 'approved').length;
+    this.setKpiText('kpi-val-approved', approvedCount);
+
+    const closedCount = filteredContracts.filter(c => c.status === 'closed').length;
+    this.setKpiText('kpi-val-closed', closedCount);
+
+    const ongoingCount = filteredContracts.filter(c => c.status === 'ongoing').length;
+    this.setKpiText('kpi-val-ongoing', ongoingCount);
+
+    const notStartedCount = filteredContracts.filter(c => c.status === 'notstarted').length;
+    this.setKpiText('kpi-val-notstarted', notStartedCount);
+
+    const completedCount = filteredContracts.filter(c => c.status === 'completed').length;
+    this.setKpiText('kpi-val-completed', completedCount);
+
+    const newCount = filteredContracts.filter(c => c.status === 'new').length;
+    this.setKpiText('kpi-val-new', newCount);
+
+    const revisedCount = filteredContracts.filter(c => c.status === 'revised').length;
+    this.setKpiText('kpi-val-revised', revisedCount);
+
+    // 10. Highest Value Contract
+    if (filteredContracts.length > 0) {
+      const highest = [...filteredContracts].sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))[0];
+      const curr = highest.currency || 'SAR';
+      this.setKpiText('kpi-val-highest', `${curr} ${(Number(highest.amount) || 0).toLocaleString()}`);
+    } else {
+      this.setKpiText('kpi-val-highest', 'SAR 0');
+    }
+  },
+
+  renderContractsCharts(contracts) {
+    if (typeof Chart === 'undefined') return;
+
+    const isAr = getLang() === 'ar';
+    const isDark = DMCStore.getTheme() === 'dark';
+    const textColor = isDark ? '#94A3B8' : '#64748B';
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+    // 1. Contracts by Branch
+    const branches = DMCStore.getBranches();
+    const branchLabels = branches.map(b => isAr ? b.nameAr.replace('فرع ', '') : b.nameEn.replace(' Branch', ''));
+    const branchData = branches.map(b => contracts.filter(c => (c.branchId || c.branch_id) === b.id).length);
+
+    this.renderOrUpdateChart('chart-branch', {
+      type: 'bar',
+      data: {
+        labels: branchLabels,
+        datasets: [{
+          label: isAr ? 'عدد العقود' : 'Contracts Count',
+          data: branchData,
+          backgroundColor: '#10B981',
+          hoverBackgroundColor: '#D4AF37',
+          borderRadius: 6,
+          barThickness: 24
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: textColor, font: { family: 'Tajawal', size: 11, weight: 'bold' } }
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: { color: textColor, stepSize: 5 }
+          }
+        }
+      }
+    });
+
+    // 2. Contracts by Status (Doughnut)
+    const statuses = DMCStore.getStatuses();
+    const statusLabels = statuses.map(s => isAr ? s.nameAr : s.nameEn);
+    const statusColors = ['#10B981', '#EF4444', '#3B82F6', '#64748B', '#059669', '#8B5CF6', '#F59E0B'];
+    const statusData = statuses.map(s => contracts.filter(c => c.status === s.id).length);
+
+    this.renderOrUpdateChart('chart-status', {
+      type: 'doughnut',
+      data: {
+        labels: statusLabels,
+        datasets: [{
+          data: statusData,
+          backgroundColor: statusColors,
+          borderWidth: 2,
+          borderColor: isDark ? '#0E2236' : '#FFFFFF',
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { color: textColor, font: { family: 'Tajawal', size: 11 }, boxWidth: 10, padding: 8 }
+          }
+        }
+      }
+    });
+    const statusTotalEl = document.getElementById('chart-status-total');
+    if (statusTotalEl) statusTotalEl.textContent = contracts.length;
+
+    // 3. Contracts by Type
+    const types = DMCStore.getQuotationTypes();
+    const typeLabels = types.map(t => isAr ? t.nameAr.replace('عروض ', 'عقود ') : t.nameEn.replace(' Quotations', ' Contracts'));
+    const typeColors = ['#10B981', '#D4AF37', '#0284C7', '#0B3D62', '#F59E0B', '#8B5CF6', '#64748B'];
+    const typeData = types.map(tp => contracts.filter(c => (c.contractTypeId || c.contract_type_id) === tp.id).length);
+
+    this.renderOrUpdateChart('chart-type', {
+      type: 'doughnut',
+      data: {
+        labels: typeLabels,
+        datasets: [{
+          data: typeData,
+          backgroundColor: typeColors,
+          borderWidth: 2,
+          borderColor: isDark ? '#0E2236' : '#FFFFFF',
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { color: textColor, font: { family: 'Tajawal', size: 11 }, boxWidth: 10, padding: 8 }
+          }
+        }
+      }
+    });
+
+    // 4. Monthly Contracts Trend (Line Chart)
+    const monthNamesAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+    const monthNamesEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthLabels = isAr ? monthNamesAr : monthNamesEn;
+
+    const curYear = new Date().getFullYear();
+    const monthlyCounts = Array(12).fill(0);
+
+    contracts.forEach(c => {
+      const d = new Date(c.signingDate || c.signing_date || c.createdAt || c.created_at);
+      if (!isNaN(d.getTime()) && d.getFullYear() === curYear) {
+        monthlyCounts[d.getMonth()]++;
+      }
+    });
+
+    this.renderOrUpdateChart('chart-monthly', {
+      type: 'line',
+      data: {
+        labels: monthLabels,
+        datasets: [{
+          label: isAr ? 'العقود الموقعة' : 'Signed Contracts',
+          data: monthlyCounts,
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16, 185, 129, 0.12)',
+          fill: true,
+          tension: 0.35,
+          pointBackgroundColor: '#D4AF37',
+          pointBorderColor: '#FFFFFF',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: textColor, font: { family: 'Tajawal', size: 11 } }
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: { color: textColor }
+          }
+        }
+      }
+    });
+
+    // 5. Contracts Financial Value Card & Top Contract
+    const totalFinancialVal = contracts.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
+    const totalValEl = document.getElementById('val-summary-amount');
+    if (totalValEl) {
+      totalValEl.textContent = `SAR ${totalFinancialVal.toLocaleString()}`;
+    }
+
+    if (contracts.length > 0) {
+      const topC = [...contracts].sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))[0];
+      const topNoEl = document.getElementById('top-q-no');
+      const topTitleEl = document.getElementById('top-q-title');
+      const topValEl = document.getElementById('top-q-val');
+
+      if (topNoEl) topNoEl.textContent = topC.contractNo || topC.contract_no;
+      if (topTitleEl) topTitleEl.textContent = isAr ? (topC.titleAr || topC.title_ar) : (topC.titleEn || topC.title_en || topC.titleAr);
+      if (topValEl) topValEl.textContent = `${topC.currency || 'SAR'} ${(Number(topC.amount) || 0).toLocaleString()}`;
+    }
+
+    // Mini bar chart inside Value Card
+    const branchValues = branches.map(b => {
+      return contracts.filter(c => (c.branchId || c.branch_id) === b.id).reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+    });
+
+    this.renderOrUpdateChart('chart-value-mini', {
+      type: 'bar',
+      data: {
+        labels: branchLabels,
+        datasets: [{
+          data: branchValues,
+          backgroundColor: '#10B981',
+          hoverBackgroundColor: '#D4AF37',
+          borderRadius: 3,
+          barThickness: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: true } },
+        scales: { x: { display: false }, y: { display: false } }
+      }
+    });
+  },
+
+  renderContractsTable(contracts) {
+    const tbody = document.getElementById('month-table-body');
+    if (!tbody) return;
+
+    const isAr = getLang() === 'ar';
+    const branches = DMCStore.getBranches();
+    const quotationTypes = DMCStore.getQuotationTypes();
+    const projectTypes = DMCStore.getProjectTypes();
+
+    const recentContracts = contracts.slice(0, 7);
+
+    if (recentContracts.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="12" class="text-center" style="padding: 2.5rem; color: var(--text-muted);">${t('no_records')}</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = recentContracts.map((item, idx) => {
+      const bId = item.branchId || item.branch_id;
+      const cTypeId = item.contractTypeId || item.contract_type_id;
+      const pTypeId = item.projectTypeId || item.project_type_id;
+
+      const branch = branches.find(b => b.id === bId);
+      const cType = quotationTypes.find(t => t.id === cTypeId);
+      const pType = projectTypes.find(p => p.id === pTypeId);
+
+      const branchName = branch ? (isAr ? branch.nameAr : branch.nameEn) : '-';
+      const cTypeName = cType ? (isAr ? cType.nameAr : cType.nameEn) : '-';
+      const pTypeName = pType ? (isAr ? pType.nameAr : pType.nameEn) : '-';
+      const statusLabel = t(`status_${item.status}`);
+      const cNo = item.contractNo || item.contract_no;
+      const title = isAr ? (item.titleAr || item.title_ar) : (item.titleEn || item.title_en || item.titleAr);
+      const client = isAr ? (item.clientNameAr || item.client_name_ar) : (item.clientNameEn || item.client_name_en || item.clientNameAr);
+      const sDate = item.signingDate || item.signing_date || (item.createdAt ? item.createdAt.slice(0, 10) : '-');
+      const amt = (Number(item.amount) || 0).toLocaleString();
+
+      return `
+        <tr>
+          <td><strong>${idx + 1}</strong></td>
+          <td><span style="font-weight: 800; color: #10B981;">${cNo}</span></td>
+          <td>${title}</td>
+          <td>${branchName}</td>
+          <td>${client}</td>
+          <td>${pTypeName}</td>
+          <td>${cTypeName}</td>
+          <td><strong>${amt}</strong></td>
+          <td><span class="badge" style="background: rgba(16,185,129,0.08); color: #10B981;">${item.currency || 'SAR'}</span></td>
+          <td><span class="badge badge-${item.status}"><span class="badge-dot"></span>${statusLabel}</span></td>
+          <td>${sDate}</td>
+          <td>
+            <div class="d-flex align-center gap-1">
+              <button class="btn btn-outline btn-icon" title="${t('action_view')}" onclick="DMCContracts.openEdit('${item.id}')">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+              <button class="btn btn-outline btn-icon" title="${t('action_edit')}" onclick="DMCContracts.openEdit('${item.id}')" style="color: var(--brand-gold);">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="btn btn-outline btn-icon" title="${t('action_open_file')}" onclick="DMCContracts.openFile('${item.id}')" style="color: #EF4444;">
+                <i class="fa-regular fa-file-pdf"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  // =========================================================================
+  // QUOTATIONS RENDERING
+  // =========================================================================
 
   // Compute and update all 10 KPI Cards
   renderKPIs(filteredQuotations) {
@@ -356,7 +966,7 @@ const DMCDashboard = {
         cutout: '72%',
         plugins: {
           legend: {
-            position: isAr ? 'right' : 'right',
+            position: 'right',
             labels: { color: textColor, font: { family: 'Tajawal', size: 11 }, boxWidth: 10, padding: 8 }
           }
         }
@@ -389,14 +999,12 @@ const DMCDashboard = {
         cutout: '72%',
         plugins: {
           legend: {
-            position: isAr ? 'right' : 'right',
+            position: 'right',
             labels: { color: textColor, font: { family: 'Tajawal', size: 11 }, boxWidth: 10, padding: 8 }
           }
         }
       }
     });
-    const typeTotalEl = document.getElementById('chart-type-total');
-    if (typeTotalEl) typeTotalEl.textContent = quotations.length;
 
     // 4. Monthly Quotations (Line Trend Chart)
     const monthNamesAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];

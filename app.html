@@ -200,27 +200,50 @@
            VIEW 1: MAIN DASHBOARD
            =================================================================== -->
       <main id="view-dashboard" class="page-view page-content">
-        <!-- Page Title & Header -->
-        <div class="page-header">
-          <h1 class="page-title" data-i18n="nav_dashboard">Dashboard</h1>
+        <!-- Page Title & Header with Dashboard Switcher -->
+        <div class="page-header d-flex align-center justify-between flex-wrap gap-3">
+          <div class="d-flex align-center gap-3">
+            <h1 class="page-title" id="dashboard-main-heading" data-i18n="nav_dashboard">Dashboard</h1>
+            <span class="badge" id="dashboard-mode-indicator" style="background: rgba(212, 175, 55, 0.15); color: var(--brand-gold); border: 1px solid rgba(212, 175, 55, 0.3); font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 20px; font-weight: 600;">
+              <i class="fa-solid fa-file-invoice" id="dashboard-mode-badge-icon"></i>
+              <span id="dashboard-mode-badge-text" data-i18n="dash_mode_quotations">عروض الأسعار</span>
+            </span>
+          </div>
+
+          <!-- Switcher between Quotations and Contracts Dashboard -->
+          <div class="dashboard-switcher-container">
+            <div class="dashboard-pill-switch" id="dashboard-pill-switch">
+              <button type="button" class="dash-switch-btn active" id="dash-switch-quotations" onclick="DMCDashboard.switchMode('quotations')" title="لوحة عروض الأسعار / Quotations Dashboard">
+                <i class="fa-solid fa-file-lines"></i>
+                <span data-i18n="dash_mode_quotations">عروض الأسعار</span>
+              </button>
+              <button type="button" class="dash-switch-btn" id="dash-switch-contracts" onclick="DMCDashboard.switchMode('contracts')" title="لوحة العقود / Contracts Dashboard">
+                <i class="fa-solid fa-file-contract"></i>
+                <span data-i18n="dash_mode_contracts">العقود</span>
+              </button>
+            </div>
+            <button type="button" class="dash-switch-icon-btn" id="btn-dash-switch-toggle" onclick="DMCDashboard.toggleMode()" title="تبديل لوحة التحكم / Switch Dashboard">
+              <i class="fa-solid fa-arrow-right-arrow-left" id="dash-switch-icon-anim"></i>
+            </button>
+          </div>
         </div>
 
         <!-- 10 KPI CARDS (MATCHING VISUAL IDENTITY MOCKUP) -->
         <section class="kpi-grid">
           <!-- 1. Total Quotations -->
           <div class="kpi-card kpi-total">
-            <div class="kpi-icon-wrap"><i class="fa-regular fa-file-lines"></i></div>
+            <div class="kpi-icon-wrap"><i class="fa-regular fa-file-lines" id="kpi-icon-total"></i></div>
             <div class="kpi-info">
-              <span class="kpi-label" data-i18n="kpi_total_quotations">Total Quotations</span>
+              <span class="kpi-label" id="kpi-lbl-total" data-i18n="kpi_total_quotations">Total Quotations</span>
               <span class="kpi-value" id="kpi-val-total">248</span>
             </div>
           </div>
 
           <!-- 2. This Month -->
           <div class="kpi-card kpi-month">
-            <div class="kpi-icon-wrap"><i class="fa-regular fa-calendar-check"></i></div>
+            <div class="kpi-icon-wrap"><i class="fa-regular fa-calendar-check" id="kpi-icon-month"></i></div>
             <div class="kpi-info">
-              <span class="kpi-label" data-i18n="kpi_this_month">This Month</span>
+              <span class="kpi-label" id="kpi-lbl-month" data-i18n="kpi_this_month">This Month</span>
               <span class="kpi-value" id="kpi-val-month">36</span>
             </div>
           </div>
@@ -292,7 +315,7 @@
           <div class="kpi-card kpi-highest">
             <div class="kpi-icon-wrap"><i class="fa-solid fa-coins"></i></div>
             <div class="kpi-info">
-              <span class="kpi-label" data-i18n="kpi_highest_value">Highest Value</span>
+              <span class="kpi-label" id="kpi-lbl-highest" data-i18n="kpi_highest_value">Highest Value</span>
               <span class="kpi-value" id="kpi-val-highest">SAR 5,200,000</span>
             </div>
           </div>
@@ -414,10 +437,10 @@
              =================================================================== -->
         <!-- Row 1: Branch Bar, Status Doughnut, Type Doughnut -->
         <section class="charts-grid-row-1">
-          <!-- Chart 1: Quotations by Branch -->
+          <!-- Chart 1: Quotations / Contracts by Branch -->
           <div class="chart-card">
             <div class="chart-header">
-              <h2 class="chart-title" data-i18n="chart_branch_title">Quotations by Branch</h2>
+              <h2 class="chart-title" id="chart-title-branch" data-i18n="chart_branch_title">Quotations by Branch</h2>
               <i class="fa-solid fa-chart-column" style="color: var(--brand-gold);"></i>
             </div>
             <div class="chart-body">
@@ -425,43 +448,39 @@
             </div>
           </div>
 
-          <!-- Chart 2: Quotations by Status -->
+          <!-- Chart 2: Quotations / Contracts by Status -->
           <div class="chart-card">
             <div class="chart-header">
-              <h2 class="chart-title" data-i18n="chart_status_title">Quotations by Status</h2>
+              <h2 class="chart-title" id="chart-title-status" data-i18n="chart_status_title">Quotations by Status</h2>
               <i class="fa-solid fa-chart-pie" style="color: var(--brand-gold);"></i>
             </div>
             <div class="chart-body">
               <canvas id="chart-status"></canvas>
               <div class="chart-doughnut-center">
                 <div class="chart-doughnut-number" id="chart-status-total">248</div>
-                <div class="chart-doughnut-label">Total</div>
+                <div class="chart-doughnut-label" id="chart-status-center-lbl">Total</div>
               </div>
             </div>
           </div>
 
-          <!-- Chart 3: Quotations by Type -->
+          <!-- Chart 3: Quotations / Contracts by Type -->
           <div class="chart-card">
             <div class="chart-header">
-              <h2 class="chart-title" data-i18n="chart_type_title">Quotations by Type</h2>
+              <h2 class="chart-title" id="chart-title-type" data-i18n="chart_type_title">Quotations by Type</h2>
               <i class="fa-solid fa-diagram-project" style="color: var(--brand-gold);"></i>
             </div>
             <div class="chart-body">
               <canvas id="chart-type"></canvas>
-              <div class="chart-doughnut-center">
-                <div class="chart-doughnut-number" id="chart-type-total">248</div>
-                <div class="chart-doughnut-label">Total</div>
-              </div>
             </div>
           </div>
         </section>
 
-        <!-- Row 2: Monthly Quotations Trend & Quotation Value Summary -->
+        <!-- Row 2: Monthly Trend (Full Width) & Financial Summary Card -->
         <section class="charts-grid-row-2">
           <!-- Chart 4: Monthly Trend -->
-          <div class="chart-card">
+          <div class="chart-card chart-card-lg">
             <div class="chart-header">
-              <h2 class="chart-title" data-i18n="chart_monthly_title">Monthly Quotations</h2>
+              <h2 class="chart-title" id="chart-title-monthly" data-i18n="chart_monthly_title">Monthly Trend</h2>
               <i class="fa-solid fa-chart-line" style="color: var(--brand-gold);"></i>
             </div>
             <div class="chart-body">
@@ -472,12 +491,12 @@
           <!-- Card 5: Quotation Value & Analysis Card -->
           <div class="chart-card">
             <div class="chart-header">
-              <h2 class="chart-title" data-i18n="chart_value_title">Quotation Value</h2>
+              <h2 class="chart-title" id="chart-title-value" data-i18n="chart_value_title">Quotation Value</h2>
               <i class="fa-solid fa-vault" style="color: var(--brand-gold);"></i>
             </div>
 
             <div class="value-summary-box">
-              <div class="value-summary-title" data-i18n="total_value_label">Total Quotation Value</div>
+              <div class="value-summary-title" id="val-summary-title" data-i18n="total_value_label">Total Quotation Value</div>
               <div class="d-flex align-center justify-between">
                 <div class="value-summary-amount" id="val-summary-amount">SAR 18,750,000</div>
                 <span class="value-trend-badge"><i class="fa-solid fa-arrow-trend-up"></i> +12%</span>
@@ -487,11 +506,11 @@
               </div>
             </div>
 
-            <!-- Top Value Quotation Callout -->
+            <!-- Top Value Quotation / Contract Callout -->
             <div class="top-quotation-callout">
               <div class="top-quotation-title">
                 <i class="fa-solid fa-trophy" style="color: var(--brand-gold);"></i>
-                <span data-i18n="top_quotation_label">Top Value Quotation</span>
+                <span id="top-item-label" data-i18n="top_quotation_label">Top Value Quotation</span>
               </div>
               <div class="top-quotation-details">
                 <div>
@@ -505,15 +524,15 @@
         </section>
 
         <!-- ===================================================================
-             SECTION: QUOTATIONS CREATED THIS MONTH
+             SECTION: QUOTATIONS / CONTRACTS CREATED THIS MONTH
              =================================================================== -->
         <section class="table-section">
           <div class="table-section-header">
             <div>
-              <h2 style="font-size: 1.25rem; font-weight: 800;" data-i18n="month_section_title">Quotations Created This Month</h2>
-              <p style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="month_section_subtitle">List of quotations officially archived during current month</p>
+              <h2 style="font-size: 1.25rem; font-weight: 800;" id="dash-month-table-title" data-i18n="month_section_title">Quotations Created This Month</h2>
+              <p style="font-size: 0.85rem; color: var(--text-muted);" id="dash-month-table-subtitle" data-i18n="month_section_subtitle">List of quotations officially archived during current month</p>
             </div>
-            <a href="#quotations" class="btn btn-outline btn-sm">
+            <a href="#quotations" class="btn btn-outline btn-sm" id="dash-month-table-view-all">
               <span data-i18n="view_all">View All</span>
               <i class="fa-solid fa-arrow-left"></i>
             </a>
@@ -524,16 +543,16 @@
               <thead>
                 <tr>
                   <th data-i18n="col_no">#</th>
-                  <th data-i18n="col_quotation_no">Quotation No.</th>
+                  <th id="dash-col-code" data-i18n="col_quotation_no">Quotation No.</th>
                   <th data-i18n="col_title">Title</th>
                   <th data-i18n="col_branch">Branch</th>
                   <th data-i18n="col_client">Client</th>
                   <th data-i18n="col_project_type">Project Type</th>
-                  <th data-i18n="col_type">Type</th>
+                  <th id="dash-col-type" data-i18n="col_type">Type</th>
                   <th data-i18n="col_amount">Amount</th>
                   <th data-i18n="col_currency">Currency</th>
                   <th data-i18n="col_status">Status</th>
-                  <th data-i18n="col_date">Date</th>
+                  <th id="dash-col-date" data-i18n="col_date">Date</th>
                   <th data-i18n="col_actions">Actions</th>
                 </tr>
               </thead>

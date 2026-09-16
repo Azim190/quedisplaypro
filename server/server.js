@@ -31,6 +31,12 @@ try {
     const { seed } = require('./seed');
     seed();
   }
+  const contractCheck = db.prepare('SELECT count(*) as count FROM contracts').get();
+  if (!contractCheck || contractCheck.count < 5) {
+    console.log('Contracts empty, auto-seeding contracts...');
+    const { seedContracts } = require('./seed_contracts');
+    seedContracts();
+  }
 } catch (e) {
   console.warn('Auto-seed check note:', e.message);
 }

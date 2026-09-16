@@ -30,83 +30,9 @@ const DMCContracts = {
   },
 
   seedInitialData() {
-    let items = JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTRACTS) || '[]');
-    if (!items || items.length === 0) {
-      const sampleContracts = [
-        {
-          id: 'c_101',
-          contractNo: 'C-2026-0001',
-          titleAr: 'عقد الإشراف الهندسي على مشروع برج النور السكني',
-          titleEn: 'Engineering Supervision Contract for Al-Noor Tower',
-          branchId: 'b_1',
-          clientNameAr: 'شركة النور للتطوير العقاري',
-          clientNameEn: 'Al-Noor Real Estate Co.',
-          projectNameAr: 'برج النور الفندقي والسكني',
-          projectNameEn: 'Al-Noor Hotel & Residential Tower',
-          projectTypeId: 'pt_res_com',
-          contractTypeId: 'qt_supervision',
-          amount: 1200000,
-          vatRate: 0.15,
-          vatAmount: 180000,
-          totalAmount: 1380000,
-          currency: 'SAR',
-          status: 'ongoing',
-          signingDate: '2026-01-15',
-          validUntil: '2027-01-15',
-          fileLink: 'https://1drv.ms/b/c/9e591ec818cb6ae4/DMC_Contract_0001',
-          fileName: 'DMC_Contract_C-2026-0001.pdf',
-          notes: 'عقد إشراف دوري متكامل يشمل مطابقة المواصفات واعتماد المخططات التنفيذية.'
-        },
-        {
-          id: 'c_102',
-          contractNo: 'C-2026-0002',
-          titleAr: 'عقد إعداد الدراسات الهيدرولوجية ودرء أخطار السيول',
-          titleEn: 'Hydraulic & Flood Risk Assessment Contract',
-          branchId: 'b_3',
-          clientNameAr: 'مجموعة الفخر للاستثمار والتطوير',
-          clientNameEn: 'Al-Fakhr Investment Group',
-          projectNameAr: 'مخطط الواحة اللوجستي',
-          projectNameEn: 'Al-Waha Logistics Masterplan',
-          projectTypeId: 'pt_infrastructure',
-          contractTypeId: 'qt_hydraulic',
-          amount: 450000,
-          vatRate: 0.15,
-          vatAmount: 67500,
-          totalAmount: 517500,
-          currency: 'SAR',
-          status: 'approved',
-          signingDate: '2026-02-01',
-          validUntil: '2026-08-01',
-          fileLink: 'https://1drv.ms/b/c/9e591ec818cb6ae4/DMC_Contract_0002',
-          fileName: 'DMC_Contract_C-2026-0002.pdf',
-          notes: 'دراسة هيدرولوجية معتمدة من الأمانة وهيئة المساحة الجيولوجية.'
-        },
-        {
-          id: 'c_103',
-          contractNo: 'C-2026-0003',
-          titleAr: 'عقد تصميم معماري وإنشائي مجمع فلل سكنية',
-          titleEn: 'Architectural & Structural Design Contract for Villa Complex',
-          branchId: 'b_2',
-          clientNameAr: 'الشيخ عبدالرحمن إبراهيم المطيري',
-          clientNameEn: 'Sheikh Abdulrahman Al-Mutairi',
-          projectNameAr: 'مجمع فلل الروضة السكني',
-          projectNameEn: 'Al-Rawdah Residential Villas',
-          projectTypeId: 'pt_villa',
-          contractTypeId: 'qt_design',
-          amount: 280000,
-          vatRate: 0.15,
-          vatAmount: 42000,
-          totalAmount: 322000,
-          currency: 'SAR',
-          status: 'completed',
-          signingDate: '2025-11-10',
-          validUntil: '2026-05-10',
-          fileLink: 'https://1drv.ms/b/c/9e591ec818cb6ae4/DMC_Contract_0003',
-          fileName: 'DMC_Contract_C-2026-0003.pdf',
-          notes: 'تم تسليم كافة المخططات ورخصة البناء الصادرة من بلدي.'
-        }
-      ];
-      localStorage.setItem(STORAGE_KEYS.CONTRACTS, JSON.stringify(sampleContracts));
+    // Initialize contracts storage as empty array if completely unset
+    if (localStorage.getItem(STORAGE_KEYS.CONTRACTS) === null) {
+      localStorage.setItem(STORAGE_KEYS.CONTRACTS, JSON.stringify([]));
     }
   },
 
@@ -509,7 +435,7 @@ const DMCContracts = {
           <td colspan="12" class="text-center" style="padding: 3rem; color: var(--text-muted);">
             <i class="fa-solid fa-file-signature" style="font-size: 2.5rem; color: var(--brand-gold); opacity: 0.6; margin-bottom: 0.75rem; display: block;"></i>
             <div style="font-weight: 700; font-size: 1rem;">${t('contracts_empty_title')}</div>
-            <div style="font-size: 0.85rem; margin-top: 0.35rem;">${t('no_records')}</div>
+            <div style="font-size: 0.85rem; margin-top: 0.35rem;">${t('contracts_empty_desc')}</div>
           </td>
         </tr>
       `;

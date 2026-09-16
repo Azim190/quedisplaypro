@@ -58,7 +58,7 @@ const DMCStore = {
 
       if (typeof DMCApi.getContracts === 'function') {
         const serverContracts = await DMCApi.getContracts();
-        if (serverContracts && Array.isArray(serverContracts) && serverContracts.length > 0) {
+        if (serverContracts && Array.isArray(serverContracts)) {
           localStorage.setItem(STORAGE_KEYS.CONTRACTS, JSON.stringify(serverContracts));
         }
       }
